@@ -10,8 +10,7 @@ const Game: React.FC = () => {
     if (typeof window !== "undefined") {
       import("phaser").then((Phaser) => {
         const config: Phaser.Types.Core.GameConfig = {
-          // type: Phaser.AUTO,  // Change this!
-          type: Phaser.CANVAS, // Or Phaser.WEBGL, but be explicit
+          type: Phaser.CANVAS,
           width: 400,
           height: 300,
           canvas: canvasRef.current!,
