@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import React, { useEffect, useRef } from "react";
 
 const Game: React.FC = () => {
   const gameContainerRef = useRef<HTMLDivElement>(null);
