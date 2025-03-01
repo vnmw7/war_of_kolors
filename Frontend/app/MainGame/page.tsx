@@ -1,71 +1,116 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
+import { useRef, useState } from "react";
+import { IRefPhaserGame, PhaserGame } from "../_game/PhaserGame";
+import { MainMenu } from "../_game/_scenes/MainMenu";
+import { useWallet } from "@/context/WalletContext";
 
-const MainGamePage: React.FC = () => {
-  const gameContainerRef = useRef<HTMLDivElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+function App() {
+  const { walletAddress, balance } = useWallet();
 
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      import("phaser").then((Phaser) => {
-        const config: Phaser.Types.Core.GameConfig = {
-          type: Phaser.CANVAS,
-          width: 400,
-          height: 300,
-          canvas: canvasRef.current!,
-          physics: {
-            default: "arcade",
-            arcade: {
-              gravity: { x: 0, y: 0 },
-              debug: false,
-            },
-          },
-          scene: {
-            preload: preload,
-            create: create,
-            update: update,
-          },
-        };
+  // The sprite can only be moved in the MainMenu Scene
+  const [canMoveSprite, setCanMoveSprite] = useState(true);
 
-        const game = new Phaser.Game(config);
-        let player: Phaser.GameObjects.Rectangle;
-        let cursors: Phaser.Types.Input.Keyboard.CursorKeys | undefined;
+  //  References to the PhaserGame component (game and scene are exposed)
+  const phaserRef = useRef<IRefPhaserGame | null>(null);
+  const [spritePosition, setSpritePosition] = useState({ x: 0, y: 0 });
 
-        function preload(this: Phaser.Scene) {}
+  const changeScene = () => {
+    if (phaserRef.current) {
+      const scene = phaserRef.current.scene as MainMenu;
 
-        function create(this: Phaser.Scene) {
-          player = this.add.rectangle(50, 150, 50, 50, 0xff0000);
-          this.physics.add.existing(player);
-          (player.body as Phaser.Physics.Arcade.Body).setCollideWorldBounds(
-            true,
-          );
-          cursors = this.input.keyboard?.createCursorKeys();
-        }
-
-        function update(this: Phaser.Scene) {
-          if (!cursors) return;
-          const body = player.body as Phaser.Physics.Arcade.Body;
-          if (cursors.left.isDown) body.setVelocityX(-100);
-          else if (cursors.right.isDown) body.setVelocityX(100);
-          else body.setVelocityX(0);
-          if (cursors.up.isDown) body.setVelocityY(-100);
-          else if (cursors.down.isDown) body.setVelocityY(100);
-          else body.setVelocityY(0);
-        }
-
-        return () => {
-          game.destroy(true);
-        };
-      });
+      if (scene) {
+        scene.changeScene();
+      }
     }
-  }, []);
+  };
+
+  const moveSprite = () => {
+    if (phaserRef.current) {
+      const scene = phaserRef.current.scene as MainMenu;
+
+      if (scene && scene.scene.key === "MainMenu") {
+        // Get the update logo position
+        scene.moveLogo(({ x, y }) => {
+          setSpritePosition({ x, y });
+        });
+      }
+    }
+  };
+
+  const addSprite = () => {
+    if (phaserRef.current) {
+      const scene = phaserRef.current.scene;
+
+      if (scene) {
+        // Add more stars
+        const x = Phaser.Math.Between(64, scene.scale.width - 64);
+        const y = Phaser.Math.Between(64, scene.scale.height - 64);
+
+        //  `add.sprite` is a Phaser GameObjectFactory method and it returns a Sprite Game Object instance
+        const star = scene.add.sprite(x, y, "star");
+
+        //  ... which you can then act upon. Here we create a Phaser Tween to fade the star sprite in and out.
+        //  You could, of course, do this from within the Phaser Scene code, but this is just an example
+        //  showing that Phaser objects and systems can be acted upon from outside of Phaser itself.
+        scene.add.tween({
+          targets: star,
+          duration: 500 + Math.random() * 1000,
+          alpha: 0,
+          yoyo: true,
+          repeat: -1,
+        });
+      }
+    }
+  };
+
+  // Event emitted from the PhaserGame component
+  const currentScene = (scene: Phaser.Scene) => {
+    setCanMoveSprite(scene.scene.key !== "MainMenu");
+  };
 
   return (
-    <div ref={gameContainerRef} className="grid place-items-center h-full">
-      <canvas ref={canvasRef} />
+    <div id="app" className="relative">
+      {walletAddress ? (
+        <div className="absolute top-0 left-0 z-50">
+          <p className="mb-2 text-4xl">
+            Connected: {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
+          </p>
+          <p className="mb-4 text-4xl">Balance: {balance} tokens</p>
+        </div>
+      ) : (
+        <p className="absolute top-0 left-0 z-50 text-4xl">
+          Please connect your wallet to continue
+        </p>
+      )}
+      <PhaserGame ref={phaserRef} currentActiveScene={currentScene} />
+      <div>
+        <div>
+          <button className="button" onClick={changeScene}>
+            Change Scene
+          </button>
+        </div>
+        <div>
+          <button
+            disabled={canMoveSprite}
+            className="button"
+            onClick={moveSprite}
+          >
+            Toggle Movement
+          </button>
+        </div>
+        <div className="spritePosition">
+          Sprite Position:
+          <pre>{`{\n  x: ${spritePosition.x}\n  y: ${spritePosition.y}\n}`}</pre>
+        </div>
+        <div>
+          <button className="button" onClick={addSprite}>
+            Add New Sprite
+          </button>
+        </div>
+      </div>
     </div>
   );
-};
+}
 
-export default MainGamePage;
+export default App;
