@@ -1,9 +1,16 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useRef, useState } from "react";
-import { IRefPhaserGame, PhaserGame } from "../_game/PhaserGame";
+import type { IRefPhaserGame } from "../_game/PhaserGame";
 import { MainMenu } from "../_game/_scenes/MainMenu";
 import { useWallet } from "@/context/WalletContext";
+
+// Dynamically import PhaserGame with SSR disabled
+const PhaserGame = dynamic(
+  () => import("../_game/PhaserGame").then((mod) => mod.PhaserGame),
+  { ssr: false },
+);
 
 function App() {
   const { walletAddress, balance } = useWallet();
