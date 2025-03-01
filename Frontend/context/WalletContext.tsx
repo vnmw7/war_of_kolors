@@ -14,7 +14,9 @@ interface WalletContextType {
 
 const WalletContext = createContext<WalletContextType | undefined>(undefined);
 
-export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [balance, setBalance] = useState<string>("0");
 
@@ -61,7 +63,10 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     try {
       const signer = await getSigner();
       const contract = getContract(signer);
-      const tx = await contract.transfer(recipient, ethers.parseUnits(amount, 18));
+      const tx = await contract.transfer(
+        recipient,
+        ethers.parseUnits(amount, 18),
+      );
       await tx.wait();
       alert("Transaction Successful!");
       fetchBalance(walletAddress!);
@@ -72,7 +77,9 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   };
 
   return (
-    <WalletContext.Provider value={{ walletAddress, balance, connectWallet, sendTokens }}>
+    <WalletContext.Provider
+      value={{ walletAddress, balance, connectWallet, sendTokens }}
+    >
       {children}
     </WalletContext.Provider>
   );
