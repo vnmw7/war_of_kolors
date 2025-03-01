@@ -5,13 +5,12 @@ name: Node.js CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
   build-and-test: # Renamed job for clarity
-
     runs-on: ubuntu-latest
 
     strategy:
@@ -23,42 +22,42 @@ jobs:
         working-directory: ./Frontend
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
-        cache-dependency-path: ./Frontend/package-lock.json # Cache based on Frontend's lockfile
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "npm"
+          cache-dependency-path: ./Frontend/package-lock.json # Cache based on Frontend's lockfile
 
-    - name: Install dependencies (in Frontend directory)
-      run: npm ci
+      - name: Install dependencies (in Frontend directory)
+        run: npm ci
 
-    - name: Run linting (in Frontend directory)
-      run: npm run lint
+      - name: Run linting (in Frontend directory)
+        run: npm run lint
 
-    - name: Run unit tests (in Frontend directory)
-      run: npm test -- --coverage  # Run tests and generate coverage report
+      - name: Run unit tests (in Frontend directory)
+        run: npm test -- --coverage # Run tests and generate coverage report
 
-    - name: Build Next.js app (in Frontend directory)
-      run: npm run build
+      - name: Build Next.js app (in Frontend directory)
+        run: npm run build
 
-    - name: Start Next.js server (in Frontend directory)
-      run: npm run start & # Start in background
-      env:
-        PORT: 3000
+      - name: Start Next.js server (in Frontend directory)
+        run: npm run start & # Start in background
+        env:
+          PORT: 3000
 
-    - name: Wait for Next.js Server
-      uses: nick-fields/retry@v2
-      with:
-        timeout_minutes: 1
-        max_attempts: 3
-        command: curl --fail http://localhost:3000 #check if server has properly started.
+      - name: Wait for Next.js Server
+        uses: nick-fields/retry@v2
+        with:
+          timeout_minutes: 1
+          max_attempts: 3
+          command: curl --fail http://localhost:3000 #check if server has properly started.
 
-    - name: Upload test reports (if tests fail) # NEW: Upload coverage report
-      if: failure()
-      uses: actions/upload-artifact@v3
-      with:
-        name: test-reports
-        path: ./Frontend/coverage  # Path to coverage directory (adjust if needed)
+      - name: Upload test reports (if tests fail) # NEW: Upload coverage report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: ./Frontend/coverage # Path to coverage directory (adjust if needed)
