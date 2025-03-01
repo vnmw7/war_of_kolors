@@ -60,7 +60,7 @@ const ConnectWallet: React.FC<ConnectWalletProps> = ({
     setWalletAddress(null);
     setWalletConnected(false);
     alert("To fully disconnect, please disconnect from your wallet provider.");
-    router.push("/pages/Menu");
+    router.push("/Menu");
   };
 
   return (
