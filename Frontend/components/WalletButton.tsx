@@ -6,13 +6,15 @@ interface ConnectWalletProps {
   setWalletConnected: (connected: boolean) => void;
 }
 
-const ConnectWallet: React.FC<ConnectWalletProps> = ({ setWalletConnected }) => {
+const ConnectWallet: React.FC<ConnectWalletProps> = ({
+  setWalletConnected,
+}) => {
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const router = useRouter(); // Ensure this runs only on the client
 
   useEffect(() => {
     const provider = getProvider();
-    
+
     const checkIfWalletIsConnected = async () => {
       try {
         const accounts = await provider.send("eth_accounts", []);
@@ -38,7 +40,7 @@ const ConnectWallet: React.FC<ConnectWalletProps> = ({ setWalletConnected }) => 
     });
 
     return () => {
-      provider.removeAllListeners("accountsChanged"); 
+      provider.removeAllListeners("accountsChanged");
     };
   }, [setWalletConnected]);
 
@@ -49,7 +51,6 @@ const ConnectWallet: React.FC<ConnectWalletProps> = ({ setWalletConnected }) => 
       setWalletAddress(accounts[0]);
       setWalletConnected(true);
       router.push("/Menu");
-
     } catch (error) {
       console.error("Connection failed:", error);
     }
@@ -59,7 +60,7 @@ const ConnectWallet: React.FC<ConnectWalletProps> = ({ setWalletConnected }) => 
     setWalletAddress(null);
     setWalletConnected(false);
     alert("To fully disconnect, please disconnect from your wallet provider.");
-    router.push('/pages/Menu');
+    router.push("/pages/Menu");
   };
 
   return (

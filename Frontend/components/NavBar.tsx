@@ -33,7 +33,7 @@ const Navbar: React.FC = () => {
     provider.on("accountsChanged", (accounts: string[]) => {
       if (accounts.length > 0) {
         setWalletAddress(accounts[0]);
-        provider.getBalance(accounts[0]).then(balanceWei => {
+        provider.getBalance(accounts[0]).then((balanceWei) => {
           setBalance(ethers.formatEther(balanceWei));
         });
       } else {
