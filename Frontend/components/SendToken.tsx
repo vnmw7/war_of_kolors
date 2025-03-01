@@ -8,8 +8,16 @@ const SendTokens: React.FC = () => {
 
   return (
     <div>
-      <input type="text" placeholder="Recipient Address" onChange={(e) => setRecipient(e.target.value)} />
-      <input type="text" placeholder="Amount" onChange={(e) => setAmount(e.target.value)} />
+      <input
+        type="text"
+        placeholder="Recipient Address"
+        onChange={(e) => setRecipient(e.target.value)}
+      />
+      <input
+        type="text"
+        placeholder="Amount"
+        onChange={(e) => setAmount(e.target.value)}
+      />
       <button onClick={() => sendTokens(recipient, amount)}>Send Tokens</button>
     </div>
   );
