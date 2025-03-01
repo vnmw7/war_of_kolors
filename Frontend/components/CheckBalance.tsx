@@ -4,9 +4,9 @@ const CheckBalance: React.FC = () => {
   const { walletAddress, balance } = useWallet();
 
   return (
-    <div>
+    <div className="w-full  flex items-center flex-col">
       <p>Wallet: {walletAddress || "Not connected"}</p>
-      <p>Balance: {balance} WOK</p>
+      <p>Your Balance: {balance} WOK</p>
     </div>
   );
 };

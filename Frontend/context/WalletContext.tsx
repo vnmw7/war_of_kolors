@@ -1,3 +1,5 @@
+"use client";
+
 import { createContext, useContext, useEffect, useState } from "react";
 import { ethers } from "ethers";
 import { getProvider, getSigner } from "@/utils/ethersProvider";
