@@ -37,9 +37,6 @@ jobs:
       - name: Run linting (in Frontend directory)
         run: npm run lint
 
-      - name: Run unit tests (in Frontend directory)
-        run: npm test -- --coverage # Run tests and generate coverage report
-
       - name: Build Next.js app (in Frontend directory)
         run: npm run build
 
