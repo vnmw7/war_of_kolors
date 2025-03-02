@@ -39,7 +39,6 @@ export class Lobby extends Scene {
     }
 
     this.scene.start("Game");
-  }
 
   moveLogo(reactCallback: ({ x, y }: { x: number; y: number }) => void) {
     if (this.logoTween) {
