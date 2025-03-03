@@ -50,7 +50,7 @@ const ConnectWallet: React.FC<ConnectWalletProps> = ({
       const accounts = await provider.send("eth_requestAccounts", []);
       setWalletAddress(accounts[0]);
       setWalletConnected(true);
-      router.push("/Menu");
+      // router.push("/Menu");
     } catch (error) {
       console.error("Connection failed:", error);
     }
