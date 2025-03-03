@@ -3,6 +3,14 @@ import { Server } from "socket.io";
 import cors from "cors";
 import http from "http";
 
+interface Player {
+  playerId: string;
+  guess: number;
+}
+
+const players: { [key: string]: Player } = {};
+let readyCheck = 0;
+
 // Create express app
 const app = express();
 app.use(express.json());
@@ -22,12 +30,16 @@ const io = new Server(server, {
 io.on("connection", (socket) => {
   console.log("A user connected! " + socket.id);
 
-  socket.on("player-ready", (socketId) => {
-    console.log(`Player ${socketId} is ready`);
-    // You can add additional logic here
-  });
+  players[socket.id] = {
+    playerId: socket.id,
+    guess: 0,
+  };
 
-  // You can add more socket event handlers here
+  socket.on("player-ready", (id) => {
+    console.log("A user is ready " + id);
+    readyCheck++;
+    console.log(players);
+  });
 });
 
 // Define the root path with a greeting message
