@@ -8,6 +8,7 @@ export class RoomList extends Scene {
   socket!: Socket;
   testBttn!: GameObjects.Text;
   availableRooms: string[] = [];
+  testRooms: string[] = ["Room1", "Room2", "Room3"];
 
   constructor() {
     super("RoomList");
@@ -16,6 +17,16 @@ export class RoomList extends Scene {
 
     this.socket.on("connect", () => {
       console.log("Connected with ID:", this.socket.id);
+    });
+  }
+
+  init() {
+    this.socket.emit("getRoomList", (rooms: []) => {
+      console.log(rooms);
+      rooms.forEach((room: { id: string }) => {
+        this.availableRooms.push(room.id);
+      });
+      console.log("These are the available rooms: " + this.availableRooms);
     });
   }
 
@@ -45,17 +56,25 @@ export class RoomList extends Scene {
       .setOrigin(0.5)
       .setInteractive();
 
-    this.testBttn.on("pointerdown", () => {
-      console.log("Test button clicked");
-      this.socket.emit("getRoomList", (rooms: []) => {
-        console.log(rooms);
-        rooms.forEach((room: { id: string }) => {
-          this.availableRooms.push(room.id);
-        });
-        console.log("These are the available rooms: " + this.availableRooms);
-      });
-    });
-
     EventBus.emit("current-scene-ready", this);
+  }
+
+  update(): void {
+    if (this.availableRooms.length > 0) {
+      this.availableRooms.forEach((roomID, index) => {
+        console.log(`Adding room: ${roomID} in the Room list`);
+        this.add
+          .text(512, 350 + index * 60, roomID, {
+            fontFamily: "Arial",
+            fontSize: 32,
+            color: "#ffffff",
+            backgroundColor: "#4e342e",
+            padding: { x: 20, y: 10 },
+          })
+          .setOrigin(0.5)
+          .setInteractive();
+      });
+      this.availableRooms = []; // Clear the rooms to prevent re-adding
+    }
   }
 }
