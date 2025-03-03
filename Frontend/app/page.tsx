@@ -11,6 +11,14 @@ export default function Home() {
     <main className="w-screen h-screen flex flex-wrap">
       <ConnectWallet setWalletConnected={setWalletConnected} />
       {walletConnect && <CheckBalance />}
+      <div className="w-full flex flex-col items-center justify-center">
+        <button
+          className={`h-24 w-1/3 cursor-pointer rounded-3xl bg-neutral-500
+          }`}
+        >
+          Continue as a Guest
+        </button>
+      </div>
     </main>
   );
 }

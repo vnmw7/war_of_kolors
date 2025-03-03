@@ -17,23 +17,6 @@ export class Game extends Scene {
     this.background = this.add.image(512, 384, "background");
     this.background.setAlpha(0.5);
 
-    // this.gameText = this.add
-    //   .text(
-    //     512,
-    //     384,
-    //     "Make something fun!\nand share it with us:\nsupport@phaser.io",
-    //     {
-    //       fontFamily: "Arial Black",
-    //       fontSize: 38,
-    //       color: "#ffffff",
-    //       stroke: "#000000",
-    //       strokeThickness: 8,
-    //       align: "center",
-    //     },
-    //   )
-    //   .setOrigin(0.5)
-    //   .setDepth(100);
-
     const colors = [0xffff00, 0xff0000, 0x0000ff, 0x00ff00, 0xff00ff, 0x800080];
 
     const chances = [0.1, 40, 20, 30, 50, 80];
