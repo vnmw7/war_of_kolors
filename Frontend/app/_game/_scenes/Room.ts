@@ -2,7 +2,7 @@ import { GameObjects, Scene } from "phaser";
 import { io, Socket } from "socket.io-client";
 import { EventBus } from "../EventBus";
 
-export class Lobby extends Scene {
+export class Room extends Scene {
   background!: GameObjects.Image;
   title!: GameObjects.Text;
   image!: GameObjects.Image;
@@ -17,9 +17,10 @@ export class Lobby extends Scene {
   socket!: Socket;
   win!: GameObjects.Text;
   lose!: GameObjects.Text;
+  roomID!: string;
 
   constructor() {
-    super("Lobby");
+    super("Room");
     this.socket = io("http://localhost:3000");
 
     this.socket.on("connect", () => {
@@ -43,11 +44,17 @@ export class Lobby extends Scene {
     });
   }
 
+  // Add this method after constructor
+  init(data: { roomID: string }) {
+    this.roomID = data.roomID;
+    console.log("Room initialized with roomId:", this.roomID);
+  }
+
   create() {
     this.background = this.add.image(512, 384, "background");
 
     this.title = this.add
-      .text(512, 460, "Lobby", {
+      .text(512, 460, this.roomID, {
         fontFamily: "Arial Black",
         fontSize: 38,
         color: "#ffffff",
@@ -208,6 +215,6 @@ export class Lobby extends Scene {
 
   changeScene() {
     // para mang change scenes
-    this.scene.start("Game");
+    this.scene.start("Room");
   }
 }

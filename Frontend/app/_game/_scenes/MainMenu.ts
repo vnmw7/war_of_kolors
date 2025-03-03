@@ -1,26 +1,27 @@
 import { GameObjects, Scene } from "phaser";
-
+import { io, Socket } from "socket.io-client";
 import { EventBus } from "../EventBus";
 
 export class MainMenu extends Scene {
   background!: GameObjects.Image;
-  logo!: GameObjects.Image;
   title!: GameObjects.Text;
-  logoTween!: Phaser.Tweens.Tween | null;
+  createRoomBttn!: GameObjects.Text;
+  joinRoomBttn!: GameObjects.Text;
+  socket!: Socket;
 
   constructor() {
     super("MainMenu");
+
+    this.socket = io("http://localhost:3000");
   }
 
   create() {
     this.background = this.add.image(512, 384, "background");
 
-    this.logo = this.add.image(512, 300, "logo").setDepth(100);
-
     this.title = this.add
-      .text(512, 460, "Main Menu", {
+      .text(512, 100, "War of Colors", {
         fontFamily: "Arial Black",
-        fontSize: 38,
+        fontSize: 40,
         color: "#ffffff",
         stroke: "#000000",
         strokeThickness: 8,
@@ -29,41 +30,61 @@ export class MainMenu extends Scene {
       .setOrigin(0.5)
       .setDepth(100);
 
+    // --- Create Lobby Button ---
+    this.createRoomBttn = this.add
+      .text(512, 250, "Create Room", {
+        fontFamily: "Arial",
+        fontSize: 32,
+        color: "#ffffff",
+        backgroundColor: "#4e342e",
+        padding: { x: 20, y: 10 },
+      })
+      .setOrigin(0.5)
+      .setInteractive();
+
+    this.createRoomBttn.on("pointerover", () => {
+      this.createRoomBttn.setStyle({ color: "#ffff00" }); // Change color on hover
+    });
+
+    this.createRoomBttn.on("pointerout", () => {
+      this.createRoomBttn.setStyle({ color: "#ffffff" }); // Reset color on mouse out
+    });
+
+    this.createRoomBttn.on("pointerdown", () => {
+      this.socket.emit("createRoom", "testID", (roomID: string) => {
+        console.log("Room created: " + roomID);
+        this.scene.start("Room", { roomID: roomID });
+      });
+    });
+
+    // --- Join Lobby Button ---
+    this.joinRoomBttn = this.add
+      .text(512, 350, "Join Room", {
+        fontFamily: "Arial",
+        fontSize: 32,
+        color: "#ffffff",
+        backgroundColor: "#4e342e",
+        padding: { x: 20, y: 10 },
+      })
+      .setOrigin(0.5)
+      .setInteractive();
+
+    this.joinRoomBttn.on("pointerover", () => {
+      this.joinRoomBttn.setStyle({ color: "#ffff00" });
+    });
+
+    this.joinRoomBttn.on("pointerout", () => {
+      this.joinRoomBttn.setStyle({ color: "#ffffff" });
+    });
+
+    this.joinRoomBttn.on("pointerdown", () => {
+      this.scene.start("RoomList", { socket: this.socket }); // Added changeScene() call for demo.
+    });
+
     EventBus.emit("current-scene-ready", this);
   }
 
-  changeScene() {
-    if (this.logoTween) {
-      this.logoTween.stop();
-      this.logoTween = null;
-    }
-
-    this.scene.start("Game");
-  }
-
-  moveLogo(reactCallback: ({ x, y }: { x: number; y: number }) => void) {
-    if (this.logoTween) {
-      if (this.logoTween.isPlaying()) {
-        this.logoTween.pause();
-      } else {
-        this.logoTween.play();
-      }
-    } else {
-      this.logoTween = this.tweens.add({
-        targets: this.logo,
-        x: { value: 750, duration: 3000, ease: "Back.easeInOut" },
-        y: { value: 80, duration: 1500, ease: "Sine.easeOut" },
-        yoyo: true,
-        repeat: -1,
-        onUpdate: () => {
-          if (reactCallback) {
-            reactCallback({
-              x: Math.floor(this.logo.x),
-              y: Math.floor(this.logo.y),
-            });
-          }
-        },
-      });
-    }
+  changeScene(sceneName: string) {
+    this.scene.start(sceneName);
   }
 }

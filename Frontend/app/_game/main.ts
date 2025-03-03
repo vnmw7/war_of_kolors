@@ -5,7 +5,8 @@ import { Game as MainGame } from "./_scenes/Game";
 import { MainMenu } from "./_scenes/MainMenu";
 import { AUTO, Game } from "phaser";
 import { Preloader } from "./_scenes/Preloader";
-import { Lobby } from "./_scenes/Lobby";
+import { Room } from "./_scenes/Room";
+import { RoomList } from "./_scenes/RoomList";
 
 //  Find out more information about the Game Config at:
 //  https://newdocs.phaser.io/docs/3.70.0/Phaser.Types.Core.GameConfig
@@ -15,7 +16,16 @@ const config: Phaser.Types.Core.GameConfig = {
   height: 768,
   parent: "game-container",
   backgroundColor: "#028af8",
-  scene: [Boot, Preloader, MainMenu, MainGame, GameOver, GameOver2, Lobby],
+  scene: [
+    Boot,
+    Preloader,
+    MainMenu,
+    MainGame,
+    GameOver,
+    GameOver2,
+    Room,
+    RoomList,
+  ],
 };
 
 const StartGame = (parent: string) => {
