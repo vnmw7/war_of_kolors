@@ -7,6 +7,7 @@ import { AUTO, Game } from "phaser";
 import { Preloader } from "./_scenes/Preloader";
 import { Room } from "./_scenes/Room";
 import { RoomList } from "./_scenes/RoomList";
+// impert ang mga scenes diri
 
 //  Find out more information about the Game Config at:
 //  https://newdocs.phaser.io/docs/3.70.0/Phaser.Types.Core.GameConfig
@@ -25,6 +26,7 @@ const config: Phaser.Types.Core.GameConfig = {
     GameOver2,
     Room,
     RoomList,
+    // butang d ang scene mo
   ],
 };
 

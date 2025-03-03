@@ -142,6 +142,45 @@ export class Room extends Scene {
         this.readyButton.setStyle({ backgroundColor: "#333333" }),
       );
 
+    this.background = this.add.image(512, 384, "background");
+    this.background.setAlpha(0.5);
+
+    const colors = [0xffff00, 0xff0000, 0x0000ff, 0x00ff00, 0xff00ff, 0x800080];
+
+    const chances = [0.1, 40, 20, 30, 50, 80];
+
+    const box1 = this.add.rectangle(300, 300, 200, 200, colors[1]);
+    const box2 = this.add.rectangle(600, 300, 200, 200, colors[1]);
+    const box3 = this.add.rectangle(900, 300, 200, 200, colors[1]);
+
+    this.add.rectangle(600, 500, 200, 100, 0xffffff);
+    this.add.text(525, 485, "Random Colors", {
+      fontSize: "24px",
+      color: "#ff0000",
+      fontFamily: "Arial",
+    });
+
+    setInterval(() => {
+      box1.fillColor = RandomColors();
+      box2.fillColor = RandomColors();
+      box3.fillColor = RandomColors();
+    }, 500);
+
+    function RandomColors() {
+      const random = Math.random() * 100;
+
+      let cumu = 0;
+
+      for (let i = 0; i < colors.length; i++) {
+        cumu += chances[i];
+        if (random < cumu) {
+          return colors[i];
+        }
+      }
+
+      return colors[0];
+    }
+
     EventBus.emit("current-scene-ready", this);
   }
 
