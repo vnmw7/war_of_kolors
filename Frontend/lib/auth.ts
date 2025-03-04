@@ -43,7 +43,7 @@ export const { auth, signIn, handlers } = NextAuth({
           const { data, error: roleError } = await supabase
             .from("roles_tbl")
             .select()
-            .eq("role_type", credentials.role)
+            .eq("role", credentials.role)
             .single();
 
           if (roleError || !data) {
@@ -107,18 +107,18 @@ export const { auth, signIn, handlers } = NextAuth({
   },
   jwt: {
     encode: async function (params) {
-      console.log("Encoding params:", params);
+      // console.log("Encoding params:", params);
       // Always use the default encode function
       const encodedToken = await defaultEncode(params);
-      console.log("Encoded token:", encodedToken);
+      // console.log("Encoded token:", encodedToken);
       return encodedToken;
     },
     decode: async function (params) {
-      console.log("Decoding params:", params);
+      // console.log("Decoding params:", params);
       try {
         // Try to decode using default decode
         const decodedToken = await defaultDecode(params);
-        console.log("Decoded token:", decodedToken);
+        // console.log("Decoded token:", decodedToken);
         return decodedToken;
       } catch (error) {
         // If there's an error decoding, return null to invalidate the session
