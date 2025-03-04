@@ -4,11 +4,12 @@ import { EventBus } from "../EventBus";
 
 export class WaitingRoom extends Scene {
   socket!: Socket;
-  win!: GameObjects.Text;
+  roomLabel!: GameObjects.Text;
   roomID!: string;
 
   constructor() {
     super("WaitingRoom");
+
     this.socket = io("http://localhost:3000");
 
     this.socket.on("connect", () => {
@@ -19,10 +20,13 @@ export class WaitingRoom extends Scene {
   // Add this method after constructor
   init(data: { roomID: string }) {
     this.roomID = data.roomID;
-    console.log("Room initialized with roomId:", this.roomID);
   }
 
   create() {
+    this.roomLabel = this.add.text(512, 460, "Waiting Room", {
+      fontFamily: "Arial Black",
+    });
+
     EventBus.emit("current-scene-ready", this);
   }
 }
