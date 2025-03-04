@@ -13,7 +13,7 @@ export class MainMenu extends Scene {
   constructor() {
     super("MainMenu");
 
-    this.socket = io("http://localhost:3001");
+    this.socket = io(`http://localhost:3000`);
   }
 
   create() {
@@ -52,9 +52,9 @@ export class MainMenu extends Scene {
     });
 
     this.createRoomBttn.on("pointerdown", () => {
-      this.socket.emit("createRoom", "testID", (roomID: string) => {
+      this.socket.emit("createGuestRoom", "testID", (roomID: string) => {
         console.log("Room created: " + roomID);
-        this.scene.start("Room", { roomID: roomID });
+        this.scene.start("WaitingRoom", { roomID: roomID });
       });
     });
 
@@ -83,16 +83,15 @@ export class MainMenu extends Scene {
     });
 
     EventBus.emit("current-scene-ready", this);
-  
 
     // --- Open Shop Button---
     this.openShop = this.add
       .text(512, 450, "Open Shop", {
-      fontFamily: "Arial",
-      fontSize: 32,
-      color: "#ffffff",
-      backgroundColor: "#4e342e",
-      padding: { x: 20, y: 10 },
+        fontFamily: "Arial",
+        fontSize: 32,
+        color: "#ffffff",
+        backgroundColor: "#4e342e",
+        padding: { x: 20, y: 10 },
       })
       .setOrigin(0.5)
       .setInteractive();
@@ -111,7 +110,6 @@ export class MainMenu extends Scene {
 
     EventBus.emit("current-scene-ready", this);
   }
-
 
   changeScene(sceneName: string) {
     this.scene.start(sceneName);
