@@ -27,6 +27,10 @@ export const { auth, signIn, handlers } = NextAuth({
         role: { label: "Account Type", type: "text" },
       },
       authorize: async (credentials): Promise<User | null> => {
+        if (!credentials.userID) {
+          return null;
+        }
+
         const { data, error } = await supabase
           .from("users_tbl")
           .select()

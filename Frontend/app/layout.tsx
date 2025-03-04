@@ -1,4 +1,4 @@
-import { WalletProvider } from "@/context/WalletContext";
+// import { WalletProvider } from "@/context/WalletContext";
 import { SessionProvider } from "next-auth/react";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
@@ -26,7 +26,9 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased h-screen bg-gray-100`}
       >
         <SessionProvider>
-          <WalletProvider>{children}</WalletProvider>
+          {/* <WalletProvider> */}
+          {children}
+          {/* </WalletProvider> */}
         </SessionProvider>
       </body>
     </html>

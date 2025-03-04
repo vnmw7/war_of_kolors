@@ -7,7 +7,7 @@ const MainGame = async () => {
   if (!session) redirect("/signIn");
   console.log(session);
 
-  return <GameClient username={session.user?.username} />;
+  return <GameClient username={session.user?.username as string} />;
 };
 
 export default MainGame;

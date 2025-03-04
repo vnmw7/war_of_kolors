@@ -15,6 +15,15 @@ const PhaserGame = dynamic(
 export default function GameClient(props: { username: string }) {
   const phaserRef = useRef<IRefPhaserGame | null>(null);
   const handleSignOut = async () => {
+    if (window.ethereum && window.ethereum.selectedAddress) {
+      try {
+        console.log("Disconnecting wallet:", window.ethereum.selectedAddress);
+        // Note: MetaMask doesn't have a direct "disconnect" method in its API
+        // The best practice is to clear your app's state related to the connection
+      } catch (error) {
+        console.error("Error disconnecting wallet:", error);
+      }
+    }
     await signOut();
   };
 
