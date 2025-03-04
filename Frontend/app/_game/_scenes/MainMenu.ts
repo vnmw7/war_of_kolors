@@ -51,9 +51,9 @@ export class MainMenu extends Scene {
     });
 
     this.createRoomBttn.on("pointerdown", () => {
-      this.socket.emit("createRoom", "testID", (roomID: string) => {
+      this.socket.emit("createGuestRoom", "testID", (roomID: string) => {
         console.log("Room created: " + roomID);
-        this.scene.start("Room", { roomID: roomID });
+        this.scene.start("WaitingRoom", { roomID: roomID });
       });
     });
 
