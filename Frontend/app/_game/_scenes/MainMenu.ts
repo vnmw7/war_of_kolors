@@ -7,6 +7,7 @@ export class MainMenu extends Scene {
   title!: GameObjects.Text;
   createRoomBttn!: GameObjects.Text;
   joinRoomBttn!: GameObjects.Text;
+  openShop!: GameObjects.Text;
   socket!: Socket;
 
   constructor() {
@@ -79,6 +80,32 @@ export class MainMenu extends Scene {
 
     this.joinRoomBttn.on("pointerdown", () => {
       this.scene.start("RoomList", { socket: this.socket }); // Added changeScene() call for demo.
+    });
+
+    EventBus.emit("current-scene-ready", this);
+
+    // --- Open Shop Button---
+    this.openShop = this.add
+      .text(512, 450, "Open Shop", {
+        fontFamily: "Arial",
+        fontSize: 32,
+        color: "#ffffff",
+        backgroundColor: "#4e342e",
+        padding: { x: 20, y: 10 },
+      })
+      .setOrigin(0.5)
+      .setInteractive();
+
+    this.openShop.on("pointerover", () => {
+      this.openShop.setStyle({ color: "#ffff00" });
+    });
+
+    this.openShop.on("pointerout", () => {
+      this.openShop.setStyle({ color: "#ffffff" });
+    });
+
+    this.openShop.on("pointerdown", () => {
+      this.scene.start("Shop", { socket: this.openShop }); // Change to open the Shop scene
     });
 
     EventBus.emit("current-scene-ready", this);
