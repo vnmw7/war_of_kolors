@@ -217,6 +217,58 @@ export class WaitingRoom extends Scene {
       }
     });
 
+    // Handle player disconnection
+    this.socket.on("playerLeft", (roomID, socketID, numOfPlayers) => {
+      if (roomID === this.roomID) {
+        console.log("Player left: " + socketID);
+        console.log(`Room ${roomID} has ${numOfPlayers} players remaining`);
+
+        // Update the connected players count and is ready count
+        this.playersReady--;
+        connectedPlayerText.setText(`Connected players: ${numOfPlayers}`);
+
+        // Find out if the disconnected player was ready
+        // If they were, we need to update the ready players count
+        this.socket.emit(
+          "checkIfPlayerWasReady",
+          roomID,
+          socketID,
+          (wasReady: boolean) => {
+            if (wasReady && this.playersReady > 0) {
+              this.playersReady--;
+              this.playersReadyText.setText(
+                `Players Ready: ${this.playersReady}`,
+              );
+            }
+          },
+        );
+
+        // Reset opponent visualization
+        // Since we don't know which exact box belongs to which player,
+        // we'll rely on the server to send updated player information
+        this.socket.emit("getUpdatedPlayers", roomID, (players: string[]) => {
+          // Reset all opponent boxes
+          this.opponents.forEach((box) => {
+            box.setFillStyle(0x007bff, 0.2);
+          });
+
+          // Then highlight those who are still ready
+          this.socket.emit(
+            "getReadyPlayers",
+            roomID,
+            (readyPlayers: string[]) => {
+              readyPlayers.forEach((player) => {
+                const index = players.indexOf(player);
+                if (index >= 0 && index < this.opponents.length) {
+                  this.opponents[index].setFillStyle(0x00ff00);
+                }
+              });
+            },
+          );
+        });
+      }
+    });
+
     // other web socket events
     // 1. update sng mga players nga ready
     this.socket.on("updatePlayersReady", (data) => {

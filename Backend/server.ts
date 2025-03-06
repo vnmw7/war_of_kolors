@@ -3,6 +3,7 @@ import { Server } from "socket.io";
 import cors from "cors";
 import http from "http";
 import { v4 as uuidv4 } from "uuid";
+import { instrument } from "@socket.io/admin-ui";
 
 interface GuestRoom {
   roomID: string;
@@ -32,6 +33,10 @@ const io = new Server(server, {
     origin: "*", // change this to the frontend URL kng mag deploy na
     methods: ["GET", "POST"],
   },
+});
+
+instrument(io, {
+  auth: false,
 });
 
 io.on("connection", (socket) => {
@@ -161,10 +166,96 @@ io.on("connection", (socket) => {
     });
   });
 
+  // Add these handlers in your server.ts file inside the io.on("connection") handler:
+
+  socket.on("checkIfPlayerWasReady", (roomID, playerID, callback) => {
+    const wasReady = roomReadyPlayers[roomID]?.includes(playerID) || false;
+    callback(wasReady);
+  });
+
+  socket.on("getReadyPlayers", (roomID, callback) => {
+    callback(roomReadyPlayers[roomID] || []);
+  });
+
+  socket.on("getUpdatedPlayers", (roomID, callback) => {
+    const room =
+      guestWaitingRooms.find((r) => r.roomID === roomID) ||
+      PlayersWaitingRooms.find((r) => r.roomID === roomID);
+    callback(room?.sockets || []);
+  });
+
   // You can also add auto-cleanup when a player disconnects
   socket.on("disconnect", () => {
-    console.log(`User disconnected: ${socket.id}`);
-    // Optional: clean rooms on disconnect
+    // Find all guest rooms this socket is part of
+    for (let i = 0; i < guestWaitingRooms.length; i++) {
+      const room = guestWaitingRooms[i];
+      const socketIndex = room.sockets.indexOf(socket.id);
+
+      if (socketIndex !== -1) {
+        // Remove socket from room's sockets array
+        room.sockets.splice(socketIndex, 1);
+
+        // Notify remaining players that someone left
+        const numOfPlayers =
+          io.sockets.adapter.rooms.get(room.roomID)?.size || 0;
+        io.to(room.roomID).emit(
+          "playerLeft",
+          room.roomID,
+          socket.id,
+          numOfPlayers,
+        );
+
+        console.log(
+          `Socket ${socket.id} removed from guest room ${room.roomID}, ${numOfPlayers} players remaining`,
+        );
+      }
+    }
+
+    // Do the same for player rooms
+    for (let i = 0; i < PlayersWaitingRooms.length; i++) {
+      const room = PlayersWaitingRooms[i];
+      const socketIndex = room.sockets.indexOf(socket.id);
+
+      if (socketIndex !== -1) {
+        // Remove socket from room's sockets array
+        room.sockets.splice(socketIndex, 1);
+
+        // Notify remaining players that someone left
+        const numOfPlayers =
+          io.sockets.adapter.rooms.get(room.roomID)?.size || 0;
+        io.to(room.roomID).emit(
+          "playerLeft",
+          room.roomID,
+          socket.id,
+          numOfPlayers,
+        );
+
+        console.log(
+          `Socket ${socket.id} removed from player room ${room.roomID}, ${numOfPlayers} players remaining`,
+        );
+      }
+    }
+
+    // Remove this player from any ready player lists
+    for (const roomID in roomReadyPlayers) {
+      const index = roomReadyPlayers[roomID].indexOf(socket.id);
+      if (index !== -1) {
+        roomReadyPlayers[roomID].splice(index, 1);
+
+        // Notify room about updated ready players
+        const allPlayers = Array.from(
+          io.sockets.adapter.rooms.get(roomID) || [],
+        );
+        io.to(roomID).emit("updatePlayersReady", {
+          roomID,
+          readyPlayerID: null,
+          allReadyPlayers: roomReadyPlayers[roomID],
+          totalPlayers: allPlayers.length,
+        });
+      }
+    }
+
+    // Clean up empty rooms
     cleanAndListRooms();
   });
 });
