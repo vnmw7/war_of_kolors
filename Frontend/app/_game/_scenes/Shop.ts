@@ -1,10 +1,9 @@
 import { Scene } from "phaser";
-
 export class Shop extends Scene {
   private character: { color: string; luck: number };
   private characterBox!: Phaser.GameObjects.Rectangle;
   private characterText!: Phaser.GameObjects.Text;
-
+  private buyCharacter!: (amount: string) => Promise<void>;
   constructor() {
     super("Shop");
     this.character = { color: "", luck: 0 }; 
@@ -14,6 +13,7 @@ export class Shop extends Scene {
     const centerX = this.cameras.main.centerX;
     const centerY = this.cameras.main.centerY;
 
+    this.buyCharacter = this.registry.get("buyCharacter");
     // Title
     this.add.text(centerX, 50, 
         "Choose a Door", 
@@ -36,7 +36,6 @@ export class Shop extends Scene {
 
   private createDoor(x: number, y: number, tier: "Bronze" | "Silver" | "Gold", minLuck: number, maxLuck: number, price: number): void {
     const door = this.add.rectangle(x, y, 100, 200, this.getDoorColor(tier)).setInteractive();
-
     this.add.text(x, y - 120, tier, 
       { 
         fontFamily: "Arial",
@@ -52,7 +51,8 @@ export class Shop extends Scene {
       })
       .setOrigin(0.5);
 
-    door.on("pointerdown", () => {
+    door.on("pointerdown", async() => {
+      await this.buyCharacter(price.toString());
       this.assignCharacter(tier, minLuck, maxLuck);
     });
   }
