@@ -17,7 +17,7 @@ const rooms: { [key: string]: Room } = {};
 
 interface GuestRoom {
   roomID: string;
-  guests: string[];
+  sockets: string[];
 }
 
 const guestRooms: GuestRoom[] = [];
@@ -38,19 +38,8 @@ const io = new Server(server, {
   },
 });
 
-// Function to broadcast the current room list
-const broadcastRoomList = () => {
-  const roomList = Object.keys(rooms).map((roomId) => ({
-    id: roomId,
-  }));
-  console.log("Broadcasting room list", roomList);
-  io.emit("roomListUpdate", roomList);
-};
-
 io.on("connection", (socket) => {
   console.log("A user connected! " + socket.id);
-
-  broadcastRoomList();
 
   socket.on("test", () => {
     console.log("Test event received");
@@ -66,11 +55,11 @@ io.on("connection", (socket) => {
   // Create a new room for guests
   // himo random room id
   // add ang new room sa guest rooms
-  socket.on("createGuestRoom", (guestID, callback) => {
+  socket.on("createGuestRoom", (socketID, callback) => {
     const roomId = uuidv4(); // Generate a unique room ID
     const newRoom: GuestRoom = {
       roomID: roomId,
-      guests: [guestID],
+      sockets: [socketID],
     };
     guestRooms.push(newRoom);
 
@@ -82,6 +71,10 @@ io.on("connection", (socket) => {
     } else {
       console.log("Room creation failed: Room not found");
     }
+  });
+
+  socket.on("playerReady", (roomID, socketID) => {
+    socket.emit("updatePlayersReady", roomID, socketID);
   });
 
   // Join an existing room

@@ -52,10 +52,7 @@ export class MainMenu extends Scene {
     });
 
     this.createRoomBttn.on("pointerdown", () => {
-      this.socket.emit("createGuestRoom", "testID", (roomID: string) => {
-        console.log("Room created: " + roomID);
-        this.scene.start("WaitingRoom", { roomID: roomID });
-      });
+      this.scene.start("WaitingRoom");
     });
 
     // --- Join Lobby Button ---
