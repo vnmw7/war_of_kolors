@@ -214,6 +214,13 @@ export class WaitingRoom extends Scene {
         console.log("Player joined: " + socketID);
         console.log(`Room ${roomID} has ${numOfPlayers} players`);
         connectedPlayerText.setText(`Connected players: ${numOfPlayers}`);
+
+        // if na max na ang players, proceed na sa gameroom
+        // adjust sa 2 ang max anay for testing
+        const maxPlayers = 2;
+        if (numOfPlayers >= maxPlayers) {
+          this.scene.start("Room", { roomID: this.roomID });
+        }
       }
     });
 
