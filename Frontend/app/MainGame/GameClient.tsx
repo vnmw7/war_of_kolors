@@ -5,7 +5,7 @@ import dynamic from "next/dynamic";
 import type { IRefPhaserGame } from "../_game/PhaserGame";
 import { Button } from "@/components/ui/button";
 import { signOut } from "next-auth/react";
-import { getGlobalState, setGlobalState } from "../_game/globalState";
+import { setGlobalState } from "../_game/globalState";
 
 // Dynamically import PhaserGame with SSR disabled
 const PhaserGame = dynamic(
@@ -37,7 +37,7 @@ export default function GameClient(props: {
     <div id="app" className="relative">
       <div className="absolute top-0 left-0 z-50">
         <p>{props.username}</p>
-        <Button
+        {/* <Button
           className="w-full"
           variant="outline"
           onClick={() => {
@@ -49,7 +49,7 @@ export default function GameClient(props: {
           }}
         >
           test global state
-        </Button>
+        </Button> */}
         <Button className="w-full" variant="outline" onClick={handleSignOut}>
           Sign Out
         </Button>

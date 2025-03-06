@@ -4,23 +4,19 @@ import cors from "cors";
 import http from "http";
 import { v4 as uuidv4 } from "uuid";
 
-interface Player {
-  playerID: string;
-  currentGuess: number;
-}
-
-interface Room {
-  players: { [key: string]: Player };
-}
-
-const rooms: { [key: string]: Room } = {};
-
 interface GuestRoom {
   roomID: string;
   sockets: string[];
 }
 
-const guestRooms: GuestRoom[] = [];
+interface PlayerRoom {
+  roomID: string;
+  sockets: string[];
+  betAmount: number;
+}
+
+const guestWaitingRooms: GuestRoom[] = [];
+const PlayersWaitingRooms: PlayerRoom[] = [];
 
 // Create express app
 const app = express();
@@ -41,31 +37,73 @@ const io = new Server(server, {
 io.on("connection", (socket) => {
   console.log("A user connected! " + socket.id);
 
-  socket.on("test", () => {
-    console.log("Test event received");
+  function cleanAndListRooms() {
+    const roomList = [];
+
+    // Create a copy of the array to safely remove items during iteration
+    const roomsToCheck = [...guestWaitingRooms, ...PlayersWaitingRooms];
+
+    for (let i = roomsToCheck.length - 1; i >= 0; i--) {
+      const room = roomsToCheck[i];
+      const connectedSockets = io.sockets.adapter.rooms.get(room.roomID);
+      const socketCount = connectedSockets ? connectedSockets.size : 0;
+
+      if (socketCount === 0) {
+        // Find the index in the original array and remove it
+        const indexInOriginal = guestWaitingRooms.findIndex(
+          (r) => r.roomID === room.roomID,
+        );
+        if (indexInOriginal !== -1) {
+          guestWaitingRooms.splice(indexInOriginal, 1);
+          console.log(`Room ${room.roomID} removed - no active connections`);
+        }
+      } else {
+        roomList.push({
+          roomID: room.roomID,
+          connectedPlayers: socketCount,
+        });
+      }
+    }
+
+    return roomList;
+  }
+
+  // Socket event to get rooms with counts and clean empty rooms
+  socket.on("getRoomsWithCounts", (callback) => {
+    const roomsWithCounts = cleanAndListRooms();
+    console.log("Active rooms:", roomsWithCounts.length);
+    callback(roomsWithCounts);
   });
 
-  socket.on("getRoomList", (callback) => {
-    const roomList = Object.keys(rooms).map((roomId) => ({
-      id: roomId,
-    }));
-    callback(roomList);
+  // Call this function periodically or when needed
+  socket.on("cleanEmptyRooms", (callback) => {
+    const activeRooms = cleanAndListRooms();
+    console.log(`Cleaned rooms. ${activeRooms.length} active rooms remaining.`);
+    if (callback) callback(activeRooms.length);
   });
 
   // Create a new room for guests
   // himo random room id
   // add ang new room sa guest rooms
-  socket.on("createGuestRoom", (socketID, callback) => {
+  socket.on("createGuestRoom", (callback) => {
+    console.log("All Guest Rooms: ", guestWaitingRooms.length);
+
+    console.log("Available Guest Rooms: ", cleanAndListRooms());
+
     const roomId = uuidv4(); // Generate a unique room ID
     const newRoom: GuestRoom = {
       roomID: roomId,
-      sockets: [socketID],
+      sockets: [], // empty lang any mag create room
     };
-    guestRooms.push(newRoom);
+    guestWaitingRooms.push(newRoom);
+
+    console.log("Available Guest Rooms: ", guestWaitingRooms.length);
 
     callback(roomId); // Send the room ID back to the client
     // ngitaun ang gn himo nga room
-    const createdRoom = guestRooms.find((room) => room.roomID === roomId);
+    const createdRoom = guestWaitingRooms.find(
+      (room) => room.roomID === roomId,
+    );
     if (createdRoom) {
       console.log(`Room created: ${createdRoom.roomID}`);
     } else {
@@ -73,28 +111,61 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("playerReady", (roomID, socketID) => {
-    socket.emit("updatePlayersReady", roomID, socketID);
+  socket.on("getAvailableRoom", (callback) => {
+    const roomsWithCounts = cleanAndListRooms();
+    const roomID =
+      roomsWithCounts[Math.floor(Math.random() * roomsWithCounts.length)]
+        ?.roomID;
+    callback(roomID);
   });
 
-  // Join an existing room
-  socket.on("joinRoom", (roomId, playerID, callback) => {
-    if (rooms[roomId]) {
-      rooms[roomId].players[socket.id] = {
-        playerID: playerID,
-        currentGuess: 0,
-      };
-      socket.join(roomId);
+  socket.on("joinRoom", (roomID, socketID) => {
+    const room = guestWaitingRooms.find((room) => room.roomID === roomID);
+    if (room) {
+      room.sockets.push(socketID);
+      console.log(`Room joined: ${roomID} by ${socketID}`);
 
-      // Notify players in the room about the new player
-      io.to(roomId).emit("playerJoined", rooms[roomId].players);
-      socket.emit("currentPlayers", rooms[roomId].players);
-      callback(true); // Success
-      console.log(`Room ${roomId} joined by ${playerID}`);
+      socket.join(roomID);
+
+      // ibalik ang connected players
+      const numOfPlayers = io.sockets.adapter.rooms.get(roomID)?.size || 0;
+      io.to(roomID).emit("aPlayerJoined", roomID, socketID, numOfPlayers);
     } else {
-      callback(false); // Room not found
-      console.log("attempted to join room that does not exist");
+      console.log("Room not found: ", roomID);
     }
+  });
+
+  // Track ready players for each room
+  const roomReadyPlayers: { [roomID: string]: string[] } = {};
+
+  socket.on("playerReady", (roomID, socketID) => {
+    // Initialize the room's ready players array if it doesn't exist
+    if (!roomReadyPlayers[roomID]) {
+      roomReadyPlayers[roomID] = [];
+    }
+
+    // Add this player to the ready players list if not already there
+    if (!roomReadyPlayers[roomID].includes(socketID)) {
+      roomReadyPlayers[roomID].push(socketID);
+    }
+
+    // Get all players in the room
+    const allPlayers = Array.from(io.sockets.adapter.rooms.get(roomID) || []);
+
+    // Send the complete list of ready players and their position in the room
+    io.to(roomID).emit("updatePlayersReady", {
+      roomID,
+      readyPlayerID: socketID,
+      allReadyPlayers: roomReadyPlayers[roomID],
+      totalPlayers: allPlayers.length,
+    });
+  });
+
+  // You can also add auto-cleanup when a player disconnects
+  socket.on("disconnect", () => {
+    console.log(`User disconnected: ${socket.id}`);
+    // Optional: clean rooms on disconnect
+    cleanAndListRooms();
   });
 });
 

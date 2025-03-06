@@ -1,7 +1,6 @@
 import { GameObjects, Scene } from "phaser";
 import { io, Socket } from "socket.io-client";
 import { EventBus } from "../EventBus";
-import { getGlobalState } from "../globalState";
 
 export class WaitingRoom extends Scene {
   socket!: Socket;
@@ -10,42 +9,33 @@ export class WaitingRoom extends Scene {
   player!: GameObjects.Rectangle;
   readyButton!: GameObjects.Rectangle;
   user_id!: string;
-  playersConnected!: number;
-  playersReady!: number;
   opponents: GameObjects.Rectangle[] = [];
   playerText!: GameObjects.Text;
+  connectTedPlayers!: number;
+  playersReady: number = 0;
+  playersReadyText!: GameObjects.Text;
 
   constructor() {
     super("WaitingRoom");
   }
 
-  preload() {
-    const globalState = getGlobalState();
-    this.user_id = globalState.user_id;
-  }
-
-  init() {
-    this.preload();
-
-    console.log("User ID: ", this.user_id);
-
+  init(data: { roomID: string }) {
     this.socket = io("http://localhost:3000");
 
     this.socket.on("connect", () => {
       console.log("Connected with ID:", this.socket.id);
-    });
 
-    this.roomID = "";
-    this.playersConnected = 1;
-    this.playersReady = 0;
+      this.roomID = data.roomID;
+      console.log("Joined room: " + this.roomID);
 
-    this.socket.emit("createGuestRoom", this.socket.id, (roomID: string) => {
-      this.roomID = roomID;
-      console.log("Room created: " + this.roomID);
+      this.socket.emit("joinRoom", this.roomID, this.socket.id);
     });
   }
 
   create() {
+    const visualViewportWidth = window.visualViewport?.width;
+    console.log("Viewport width: ", visualViewportWidth);
+
     const canvasWidth = this.sys.game.config.width as number;
     const canvasHeight = this.sys.game.config.height as number;
     const boxSize = 100;
@@ -118,7 +108,8 @@ export class WaitingRoom extends Scene {
       })
       .setOrigin(0.5);
 
-    this.add
+    this.playersReady = 0;
+    this.playersReadyText = this.add
       .text(
         canvasWidth / 2,
         canvasHeight - 200,
@@ -131,11 +122,11 @@ export class WaitingRoom extends Scene {
       )
       .setOrigin(0.5, 0.5);
 
-    this.add
+    const connectedPlayerText = this.add
       .text(
         canvasWidth / 2,
         canvasHeight - 100,
-        `Connected players: ${this.playersConnected}`,
+        `Connected players: ${this.connectTedPlayers}`,
         {
           fontFamily: "Arial",
           fontSize: "32px",
@@ -158,29 +149,9 @@ export class WaitingRoom extends Scene {
       )
       .setOrigin(0.5, 0.5);
 
-    // other web socket events
-    // 1. update sng mga players nga ready
-    this.socket.on("updatePlayersReady", (roomID: string, socketID: string) => {
-      if (roomID === this.roomID) {
-        console.log("Player ready: " + socketID);
-
-        if (socketID == this.socket.id) {
-          this.player.setFillStyle(0x00ff00);
-        }
-
-        this.playersReady++;
-        console.log("Players ready: " + this.playersReady);
-      }
-    });
-
-    EventBus.emit("current-scene-ready", this);
-  }
-
-  update() {
-    // ang viewport sng browser
-    const visualViewportWidth = window.visualViewport?.width;
-    console.log("Viewport width: ", visualViewportWidth);
-
+    //
+    // adjust and canvas ang ang objects para responsive
+    //
     if (visualViewportWidth !== undefined && visualViewportWidth < 580) {
       // Adjust the layout of opponent boxes
       const startX =
@@ -229,5 +200,47 @@ export class WaitingRoom extends Scene {
         startY + boxSize + spacing + 50,
       );
     }
+
+    // +---------------------------+
+    // +---------------------------+
+    // |    🔊 SOCKET LISTERNS    |
+    // +---------------------------+
+    // +---------------------------+
+    this.socket.on("aPlayerJoined", (roomID, socketID, numOfPlayers) => {
+      // A function that runs when a player joins the room
+      console.log("Player joined: " + socketID);
+
+      if (roomID === this.roomID) {
+        console.log("Player joined: " + socketID);
+        console.log(`Room ${roomID} has ${numOfPlayers} players`);
+        connectedPlayerText.setText(`Connected players: ${numOfPlayers}`);
+      }
+    });
+
+    // other web socket events
+    // 1. update sng mga players nga ready
+    this.socket.on("updatePlayersReady", (data) => {
+      if (data.roomID === this.roomID) {
+        console.log("Player ready: " + data.readyPlayerID);
+
+        // Update the player box if it's the current player
+        if (data.readyPlayerID === this.socket.id) {
+          this.player.setFillStyle(0x00ff00);
+        } else {
+          // Find the index of this player in the opponents
+          const index = data.allReadyPlayers.indexOf(data.readyPlayerID);
+          if (index >= 0 && index < this.opponents.length) {
+            this.opponents[index].setFillStyle(0x00ff00);
+          }
+        }
+
+        this.playersReady++;
+        this.playersReadyText.setText(`Players Ready: ${this.playersReady}`);
+      }
+    });
+
+    EventBus.emit("current-scene-ready", this);
   }
+
+  update() {}
 }
