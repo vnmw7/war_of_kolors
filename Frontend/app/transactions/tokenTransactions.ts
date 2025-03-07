@@ -18,6 +18,7 @@ export const sendTokens = async (recipient: string, amount: string, walletAddres
 };
 
 export const buyCharacter = async (amount: string, walletAddress: string, fetchBalance: (address: string) => void) => {
+  console.log(amount,walletAddress,fetchBalance(walletAddress))
   try {
     if (!walletAddress) throw new Error("Wallet not connected");
     const devWallet = process.env.NEXT_PUBLIC_WALLET_ADDRESS;
@@ -29,8 +30,9 @@ export const buyCharacter = async (amount: string, walletAddress: string, fetchB
     await tx.wait();
 
     alert("Character purchased successfully!");
-    fetchBalance(walletAddress);
+
   } catch (error) {
+    console.log(fetchBalance(walletAddress))
     console.error("Character purchase failed:", error);
     alert("Character purchase failed!");
   }
