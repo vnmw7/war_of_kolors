@@ -2,42 +2,24 @@ import { EventBus } from "../EventBus";
 
 // Interface for settings that can be modified by Leva GUI
 export interface GameSettings {
-  playerColor: string;
-  playerSize: number;
-  backgroundColor: string;
-  isReady: boolean;
+  objectHeight: number;
+  objectWidth: number;
+  objectRotation: number;
 }
-
-// Default settings
-export const defaultSettings: GameSettings = {
-  playerColor: "#FFFFFF",
-  playerSize: 50,
-  backgroundColor: "rgba(0, 0, 0, 0.5)",
-  isReady: false,
-};
-
-// Current settings instance
-export let currentSettings: GameSettings = { ...defaultSettings };
 
 // Function to update settings from Leva GUI
 export function updateSettings(settings: Partial<GameSettings>) {
-  currentSettings = { ...currentSettings, ...settings };
-
   // Emit events that the Phaser game can listen to
-  if ("playerColor" in settings) {
-    EventBus.emit("leva-player-color-changed", settings.playerColor);
+  if ("objectHeight" in settings) {
+    EventBus.emit("leva-object-height-changed", settings.objectHeight);
   }
 
-  if ("playerSize" in settings) {
-    EventBus.emit("leva-player-size-changed", settings.playerSize);
+  if ("objectWidth" in settings) {
+    EventBus.emit("leva-object-width-changed", settings.objectWidth);
   }
 
-  if ("backgroundColor" in settings) {
-    EventBus.emit("leva-background-color-changed", settings.backgroundColor);
-  }
-
-  if ("isReady" in settings) {
-    EventBus.emit("leva-ready-state-changed", settings.isReady);
+  if ("objectRotation" in settings) {
+    EventBus.emit("leva-object-rotation-changed", settings.objectRotation);
   }
 }
 

@@ -26,8 +26,13 @@ export class Preloader extends Scene {
     //  Load the assets for the game - Replace with your own assets
     this.load.setPath("assets");
 
-    this.load.image("logo", "logo.png");
-    this.load.image("star", "star.png");
+    this.load.image("wokArena", "/gameRoom/wokarena.png");
+    this.load.image("die-1", "/gameRoom/die-1.png");
+    this.load.image("die-2", "/gameRoom/die-2.png");
+    this.load.image("die-3", "/gameRoom/die-3.png");
+    this.load.image("die-4", "/gameRoom/die-4.png");
+    this.load.image("die-5", "/gameRoom/die-5.png");
+    this.load.image("die-6", "/gameRoom/die-6.png");
   }
 
   create() {
@@ -35,6 +40,6 @@ export class Preloader extends Scene {
     //  For example, you can define global animations here, so we can use them in other scenes.
 
     //  Move to the MainMenu. You could also swap this for a Scene Transition, such as a camera fade.
-    this.scene.start("MainMenu");
+    this.scene.start("Room");
   }
 }

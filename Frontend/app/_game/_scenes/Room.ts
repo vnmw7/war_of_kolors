@@ -22,6 +22,7 @@ export class Room extends Scene {
   // Camera position
   cameraX!: number;
   cameraY!: number;
+  visualViewportWidth!: number;
 
   // Game data
   playersLogs!: PlayerLog[];
@@ -32,6 +33,9 @@ export class Room extends Scene {
   player_info_p!: Array<{ x: number; y: number }>;
   text_value!: Phaser.GameObjects.Text[];
   mainplayerinfo_text!: Phaser.GameObjects.Text;
+  die1!: Phaser.GameObjects.Image;
+  die2!: Phaser.GameObjects.Image;
+  die3!: Phaser.GameObjects.Image;
 
   constructor() {
     super("Room");
@@ -52,6 +56,29 @@ export class Room extends Scene {
     //Responsive
     this.cameraX = this.cameras.main.width / 2;
     this.cameraY = this.cameras.main.height / 2;
+    this.visualViewportWidth = window.visualViewport?.width || 1024;
+
+    // responsivve condigurations
+    const wokArenaConfig = {
+      width: this.visualViewportWidth! + 50,
+      height: this.visualViewportWidth! * (3000 / 4200) + 50,
+      rotation: 0,
+    };
+    const dieConfig = {
+      size: 90,
+      spaceBetween: 100,
+    };
+
+    if (
+      this.visualViewportWidth !== undefined &&
+      this.visualViewportWidth < 928
+    ) {
+      wokArenaConfig.width = this.visualViewportWidth! * 2.1;
+      wokArenaConfig.height =
+        this.visualViewportWidth! * (3000 / 4200) * 2.1 + 20;
+      dieConfig.size = 60;
+      dieConfig.spaceBetween = 70;
+    }
 
     //Players Logs || Waiting Other Player Logs
     this.playersLogs = [
@@ -96,8 +123,13 @@ export class Room extends Scene {
 
     //GamePlay System && Rules
 
+    // Add black background
+    this.cameras.main.setBackgroundColor(0x161b22);
+
     // Main Board
-    this.add.rectangle(this.cameraX, this.cameraY, 500, 300, 0x161b22);
+    this.add
+      .image(this.cameraX, this.cameraY, "wokArena")
+      .setDisplaySize(wokArenaConfig.width, wokArenaConfig.height);
 
     this.add
       .text(this.cameraX, this.cameraY - 100, ["TOTAL PRIZE = " + prizeWOK], {
@@ -106,6 +138,49 @@ export class Room extends Scene {
         fontStyle: "bold",
       })
       .setOrigin(0.5);
+
+    // Dices
+    this.die1 = this.add
+      .image(this.cameraX - dieConfig.spaceBetween, this.cameraY, "die-1")
+      .setDisplaySize(dieConfig.size, dieConfig.size);
+    this.die2 = this.add
+      .image(this.cameraX, this.cameraY, "die-2")
+      .setDisplaySize(dieConfig.size, dieConfig.size);
+    this.die3 = this.add
+      .image(this.cameraX + dieConfig.spaceBetween, this.cameraY, "die-3")
+      .setDisplaySize(dieConfig.size, dieConfig.size);
+    this.time.addEvent({
+      delay: 800,
+      callback: () => {
+        this.die1.setTexture(`die-${Math.floor(Math.random() * 6) + 1}`);
+        this.tweens.add({
+          targets: this.die1,
+          y: this.die1.y - 16,
+          duration: 340,
+          ease: "Power2",
+          yoyo: true,
+        });
+
+        this.die2.setTexture(`die-${Math.floor(Math.random() * 6) + 1}`);
+        this.tweens.add({
+          targets: this.die2,
+          y: this.die2.y - 16,
+          duration: 400,
+          ease: "Power2",
+          yoyo: true,
+        });
+
+        this.die3.setTexture(`die-${Math.floor(Math.random() * 6) + 1}`);
+        this.tweens.add({
+          targets: this.die3,
+          y: this.die3.y - 16,
+          duration: 320,
+          ease: "Power2",
+          yoyo: true,
+        });
+      },
+      loop: true,
+    });
 
     let count = 5;
 
@@ -138,31 +213,6 @@ export class Room extends Scene {
       loop: true,
     });
 
-    //Box Dice...
-    const box1 = this.add.rectangle(
-      this.cameraX - 130,
-      this.cameraY,
-      90,
-      90,
-      this.playersLogs[0].color,
-    );
-
-    const box2 = this.add.rectangle(
-      this.cameraX,
-      this.cameraY,
-      90,
-      90,
-      this.playersLogs[0].color,
-    );
-
-    const box3 = this.add.rectangle(
-      this.cameraX + 130,
-      this.cameraY,
-      90,
-      90,
-      this.playersLogs[0].color,
-    );
-
     const totalLuck = this.playersLogs.reduce(
       (sum: number, player: PlayerLog) => sum + player.luck,
       0,
@@ -184,10 +234,6 @@ export class Room extends Scene {
 
     const setColors = () => {
       const boxResult = [RandomColors(), RandomColors(), RandomColors()];
-
-      box1.fillColor = boxResult[0];
-      box2.fillColor = boxResult[1];
-      box3.fillColor = boxResult[2];
 
       for (let i = 0; i < this.playersLogs.length; i++) {
         if (
@@ -396,6 +442,8 @@ export class Room extends Scene {
 
     EventBus.emit("current-scene-ready", this);
   }
+
+  update(): void {}
 
   // Add the setupLevaControlListeners method
   setupLevaControlListeners() {

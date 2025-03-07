@@ -1,44 +1,29 @@
 "use client";
 
 import { useEffect } from "react";
-import { useControls, button } from "leva";
-import { updateSettings, defaultSettings } from "./LevaControls";
+import { useControls } from "leva";
+import { updateSettings } from "./LevaControls";
 
 export function LevaPanel() {
   const values = useControls({
-    playerColor: {
-      value: defaultSettings.playerColor,
-      options: {
-        white: "#FFFFFF",
-        red: "#FF0000",
-        blue: "#0000FF",
-        yellow: "#FFFF00",
-        green: "#00FF00",
-      },
+    objectHeight: {
+      value: 500,
+      min: 10,
+      max: 1024,
+      step: 1,
     },
-    playerSize: {
-      value: defaultSettings.playerSize,
-      min: 20,
-      max: 100,
-      step: 5,
+    objectWidth: {
+      value: 500,
+      min: 10,
+      max: 1024,
+      step: 1,
     },
-    backgroundColor: {
-      value: defaultSettings.backgroundColor,
-      label: "Background Alpha",
-      options: {
-        Transparent: "rgba(0, 0, 0, 0.5)",
-        Solid: "rgba(0, 0, 0, 1)",
-        Light: "rgba(200, 200, 200, 0.5)",
-      },
+    objectRotation: {
+      value: 0,
+      min: 0,
+      max: 359,
+      step: 1,
     },
-    isReady: {
-      value: defaultSettings.isReady,
-      label: "Ready",
-    },
-    startGame: button(() => {
-      console.log("Starting game!");
-      updateSettings({ isReady: true });
-    }),
   });
 
   useEffect(() => {

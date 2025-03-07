@@ -1,7 +1,7 @@
 import { forwardRef, useEffect, useLayoutEffect, useRef } from "react";
 import StartGame from "./main";
 import { EventBus } from "./EventBus";
-import { LevaPanel } from "./_levaGUI/LevaPanel";
+// import { LevaPanel } from "./_levaGUI/LevaPanel";
 
 export interface IRefPhaserGame {
   game: Phaser.Game | null;
@@ -57,7 +57,7 @@ export const PhaserGame = forwardRef<IRefPhaserGame, IProps>(
     return (
       <>
         <div id="game-container"></div>
-        <LevaPanel />
+        {/* <LevaPanel /> */}
       </>
     );
   },
