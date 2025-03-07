@@ -217,10 +217,10 @@ export class WaitingRoom extends Scene {
 
         // if na max na ang players, proceed na sa gameroom
         // adjust sa 2 ang max anay for testing
-        const maxPlayers = 2;
-        if (numOfPlayers >= maxPlayers) {
-          this.scene.start("Room", { roomID: this.roomID });
-        }
+        // const maxPlayers = 2;
+        // if (numOfPlayers >= maxPlayers) {
+        //   this.scene.start("Room", { roomID: this.roomID });
+        // }
       }
     });
 
