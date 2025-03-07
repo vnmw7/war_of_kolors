@@ -28,6 +28,8 @@ export default function GameClient(props: {
       user_id: props.user_id,
       username: props.username,
     });
+
+    console.log();
   }, [props.user_id, props.username]);
 
   const handleSignOut = async () => {
