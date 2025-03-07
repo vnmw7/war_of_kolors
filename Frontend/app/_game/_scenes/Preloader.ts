@@ -33,6 +33,7 @@ export class Preloader extends Scene {
     this.load.image("die-4", "/gameRoom/die-4.png");
     this.load.image("die-5", "/gameRoom/die-5.png");
     this.load.image("die-6", "/gameRoom/die-6.png");
+    this.load.image("slash", "/gameRoom/slash.png");
   }
 
   create() {
@@ -40,6 +41,6 @@ export class Preloader extends Scene {
     //  For example, you can define global animations here, so we can use them in other scenes.
 
     //  Move to the MainMenu. You could also swap this for a Scene Transition, such as a camera fade.
-    this.scene.start("Room");
+    this.scene.start("/MainGame");
   }
 }
