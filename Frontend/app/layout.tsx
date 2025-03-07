@@ -27,9 +27,9 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased h-screen bg-gray-100`}
       >
         <SessionProvider>
-          {/* <WalletProvider> */}
+          <WalletProvider>
           {children}
-          {/* </WalletProvider> */}
+          </WalletProvider>
         </SessionProvider>
       </body>
     </html>
