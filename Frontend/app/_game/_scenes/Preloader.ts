@@ -57,11 +57,10 @@ export class Preloader extends Scene {
     this.load.image("die-6", "/gameRoom/die-6.png");
     this.load.image("slash", "/gameRoom/slash.png");
 
-    for (let i = 1; i <= 96; i++) {
-      this.load.image(`characterSprite${i}`, `char_${i}.png`);
+    for (let i = 1; i <= 104; i++) {
+      this.load.image(`characterSprite${i}`, `assets/char_${i}.png`);
     }
 
-    this.load.audio("ambiance", "/bgm/ambiance.mp3");
     this.load.audio("action", "/bgm/action.mp3");
   }
 
