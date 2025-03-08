@@ -133,6 +133,8 @@ export class MainMenu extends Scene {
   }
 
   create() {
+    this.sound.add("ambiance", { loop: true }).play();
+
     const cameraX = this.cameras.main.width / 2;
     const cameraY = this.cameras.main.height / 2;
     console.log("Camera X: ", cameraX);

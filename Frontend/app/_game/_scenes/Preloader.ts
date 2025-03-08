@@ -61,6 +61,7 @@ export class Preloader extends Scene {
       this.load.image(`characterSprite${i}`, `assets/char_${i}.png`);
     }
 
+    this.load.audio("ambiance", "/bgm/ambiance.mp3");
     this.load.audio("action", "/bgm/action.mp3");
   }
 
