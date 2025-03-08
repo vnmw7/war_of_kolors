@@ -52,12 +52,12 @@ export class Shop extends Scene {
     "White Beast Rider",
     "Yellow Beast Rider",
     // Mages
-    "Green Mage",
-    "Red Mage",
-    "Pink Mage",
-    "White Mage",
-    "Yellow Mage",
-    "Blue Mage",
+    "Green Mages",
+    "Red Mages",
+    "Pink Mages",
+    "White Mages",
+    "Yellow Mages",
+    "Blue Mages",
     // Warrior Princesses
     "Blue Warrior Princess",
     "White Warrior Princess",
@@ -121,6 +121,15 @@ export class Shop extends Scene {
     "Pink Mecha Warrior",
     "Yellow Mecha Warrior",
     "White Mecha Warrior",
+    // Rainbow
+    "Rainbow Viking",
+    "Rainbow Valkyrie",
+    "Rainbow Beast Rider",
+    "Rainbow Mage",
+    "Rainbow Ninja",
+    "Rainbow Tribal Chief",
+    "Rainbow Great Elder",
+    "Rainbow Knight",
   ];
 
   private buyCharacter!: (amount: string) => Promise<void>;
@@ -141,15 +150,16 @@ export class Shop extends Scene {
     this.load.image("BronzeDoor", "assets/bronzedoor.png");
     this.load.image("SilverDoor", "assets/silverdoor.png");
     this.load.image("GoldDoor", "assets/golddoor.png");
+    this.load.image("RainbowDoor", "assets/rainbowdoor.png");
 
     // Potions
-    this.load.image("devilsPotion", "assets/potion.png");
-    this.load.image("leprechaunsPotion", "assets/potion.png");
+    this.load.image("devilsPotion", "assets/devilsPotion.png");
+    this.load.image("leprechaunsPotion", "assets/leprechaunsPotion.png");
 
     // Characters
     // 💬[vincent]: gn move ko sa preloader.ts
-    // for (let i = 1; i <= 96; i++) {
-    //   this.load.image(`characterSprite${i}`, `assets/char_${i}.png`);
+    //   for (let i = 1; i <= 104; i++) {
+    //     this.load.image(`characterSprite${i}`, `assets/char_${i}.png`);
     // }
   }
 
@@ -210,9 +220,10 @@ export class Shop extends Scene {
     );
 
     // Doors
-    this.createDoor(centerX - 200, centerY - 100, "Bronze", 0.01, 0.05, 10000);
-    this.createDoor(centerX, centerY - 100, "Silver", 0.05, 0.1, 20000);
-    this.createDoor(centerX + 200, centerY - 100, "Gold", 0.1, 0.15, 30000);
+    this.createDoor(centerX - 300, centerY - 100, "Bronze", 0.01, 0.05, 10000);
+    this.createDoor(centerX - 100, centerY - 100, "Silver", 0.05, 0.1, 20000);
+    this.createDoor(centerX + 100, centerY - 100, "Gold", 0.1, 0.15, 30000);
+    this.createDoor(centerX + 300, centerY - 100, "Rainbow", 0.1, 0.15, 50000);
 
     // this.createCharacterBox(centerX, centerY + 200);
   }
@@ -303,7 +314,11 @@ export class Shop extends Scene {
       .setOrigin(0.5);
 
     const potionImage = this.add
-      .image(this.cameras.main.centerX, this.cameras.main.centerY, potionSprite)
+      .image(
+        this.cameras.main.centerX,
+        this.cameras.main.centerY - 20,
+        potionSprite,
+      )
       .setOrigin(0.5)
       .setDisplaySize(100, 100);
 
@@ -323,7 +338,7 @@ export class Shop extends Scene {
     const closeButton = this.add
       .text(
         this.cameras.main.centerX,
-        this.cameras.main.centerY + 100,
+        this.cameras.main.centerY + 110,
         "Close",
         {
           fontFamily: "Arial",
@@ -378,7 +393,7 @@ export class Shop extends Scene {
   private createDoor(
     x: number,
     y: number,
-    tier: "Bronze" | "Silver" | "Gold",
+    tier: "Bronze" | "Silver" | "Gold" | "Rainbow",
     minLuck: number,
     maxLuck: number,
     price: number,
@@ -425,12 +440,13 @@ export class Shop extends Scene {
   }
 
   private async assignCharacter(
-    tier: "Bronze" | "Silver" | "Gold",
+    tier: "Bronze" | "Silver" | "Gold" | "Rainbow",
     minLuck: number,
     maxLuck: number,
   ): Promise<void> {
     this.character.tier = tier;
-    this.character.color = this.getRandomColor();
+    this.character.color =
+      tier === "Rainbow" ? "Rainbow" : this.getRandomColor();
     this.character.luck = parseFloat(
       (Math.random() * (maxLuck - minLuck) + minLuck).toFixed(2),
     );
@@ -442,7 +458,8 @@ export class Shop extends Scene {
       Yellow: [6, 8, 18, 23, 25, 36, 41, 45, 52, 57, 63, 71, 77, 79, 89, 95],
       Green: [3, 12, 14, 24, 30, 31, 37, 47, 51, 56, 65, 69, 73, 80, 86, 92],
       Pink: [4, 11, 16, 22, 27, 34, 39, 48, 50, 60, 62, 72, 74, 81, 94],
-      White: [5, 10, 17, 19, 29, 35, 40, 44, 54, 54, 61, 70, 78, 83, 90, 96],
+      White: [5, 10, 17, 19, 29, 35, 40, 44, 54, 58, 61, 70, 78, 83, 90, 96],
+      Rainbow: [97, 98, 99, 100, 101, 102, 103, 104],
     };
 
     const possibleSprites = spriteOptions[this.character.color];
