@@ -5,8 +5,8 @@ import { NextResponse } from "next/server";
 export async function POST(request: Request) {
   try {
     // Get character data from request
-    const { tier, color, luck } = await request.json();
-    console.log("Recieved payload: " + tier, color, luck);
+    const { tier, color, luck, sprite, name } = await request.json();
+    console.log("Recieved payload: " + tier, color, luck, sprite, name);
 
     // Get user session server-side
     const session = await auth();
@@ -37,6 +37,8 @@ export async function POST(request: Request) {
       tier,
       color,
       luck,
+      sprite,
+      name,
     });
 
     if (error) {

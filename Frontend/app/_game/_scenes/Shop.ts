@@ -147,14 +147,33 @@ export class Shop extends Scene {
     this.load.image("leprechaunsPotion", "assets/potion.png");
 
     // Characters
-    for (let i = 1; i <= 96; i++) {
-      this.load.image(`characterSprite${i}`, `assets/char_${i}.png`);
-    }
+    // 💬[vincent]: gn move ko sa preloader.ts
+    // for (let i = 1; i <= 96; i++) {
+    //   this.load.image(`characterSprite${i}`, `assets/char_${i}.png`);
+    // }
   }
 
   create(): void {
     const centerX = this.cameras.main.centerX;
     const centerY = this.cameras.main.centerY;
+
+    const backButton = this.add
+      .text(centerX, centerY + 300, "Back", {
+        fontFamily: "Arial",
+        fontSize: 32,
+        color: "#ffffff",
+        backgroundColor: "#000000",
+        padding: { x: 20, y: 10 },
+      })
+      .setOrigin(0.5)
+      .setInteractive()
+      .on("pointerdown", () => {
+        this.scene.start("MainMenu");
+      });
+
+    backButton.on("pointerdown", () => {
+      this.scene.start("Game");
+    });
 
     this.buyCharacter = this.registry.get("buyCharacter");
     // Title
@@ -384,7 +403,7 @@ export class Shop extends Scene {
       .setOrigin(0.5);
 
     door.on("pointerdown", async () => {
-      // await this.buyCharacter(price.toString());
+      await this.buyCharacter(price.toString());
       this.assignCharacter(tier, minLuck, maxLuck);
     });
   }
@@ -449,6 +468,8 @@ export class Shop extends Scene {
           tier: this.character.tier,
           color: this.character.color,
           luck: this.character.luck,
+          sprite: this.character.sprite,
+          name: this.character.name,
         }),
       });
 
