@@ -50,7 +50,7 @@ export class MainMenu extends Scene {
   constructor() {
     super("MainMenu");
 
-    this.socket = io("localhost:3000");
+    this.socket = io("https://sipd-wok.onrender.com");
   }
 
   private updateCharacterBasedUI() {
