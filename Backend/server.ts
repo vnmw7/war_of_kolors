@@ -233,12 +233,64 @@ io.on("connection", (socket) => {
   socket.on("joinWaitingRoom", (roomID, socketID, user, character, potions) => {
     const room = playersWaitingRooms.find((room) => room.roomID === roomID);
     if (room) {
-      room.players.push({ socketID, user, character, potions });
-      console.log(`Room joined: ${roomID} by ${socketID}`);
+      // Validate player data to ensure no null or undefined values
+      if (!user || !character) {
+        console.log(`Invalid player data for ${socketID}:`, {
+          user,
+          character,
+          potions,
+        });
+        return; // Exit early if critical data is missing
+      }
 
+      // Check if the player is already in the room to avoid duplicates
+      const existingPlayerIndex = room.players.findIndex(
+        (player) => player.socketID === socketID,
+      );
+
+      if (existingPlayerIndex === -1) {
+        // Ensure we have valid data before adding the player
+        const sanitizedUser = user || {
+          id: "unknown",
+          user_id: "unknown",
+          username: "Unknown Player",
+        };
+        const sanitizedCharacter = character || {
+          id: 0,
+          name: "Unknown",
+          sprite: "logo",
+          created_at: "",
+          tier: "bronze",
+          color: "white",
+        };
+        const sanitizedPotions = potions || {
+          id: "unknown",
+          devil: 0,
+          leprechaun: 0,
+        };
+
+        // Only add the player if they're not already in the room
+        room.players.push({
+          socketID,
+          user: sanitizedUser,
+          character: sanitizedCharacter,
+          potions: sanitizedPotions,
+        });
+
+        console.log(`Room joined: ${roomID} by ${socketID}`);
+      } else {
+        console.log(`Player ${socketID} already in room ${roomID}`);
+      }
+
+      // Join the socket to the room
       socket.join(roomID);
 
+      // Emit the updated players list to all clients in the room
       io.to(roomID).emit("playerJoinedWaitingRoom", room.players);
+      console.log(
+        `Emitting updated players list for room ${roomID}:`,
+        room.players,
+      );
     } else {
       console.log("Room not found: ", roomID);
     }
