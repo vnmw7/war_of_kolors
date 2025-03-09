@@ -286,9 +286,23 @@ export class Shop extends Scene {
     potionSprite: string,
   ): Promise<void> {
     try {
-      await this.buyCharacter(price.toString()); // Reusing the buyCharacter method for purchasing potions
+      // await this.buyCharacter(price.toString()); // Reusing the buyCharacter method for purchasing potions
       buyPotion();
       this.showPotionModal(potionName, potionSprite);
+      try {
+        await fetch("/api/inventory/addPotion", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            potionName,
+            quantity: 1,
+          }),
+        });
+      } catch (error) {
+        console.error("Error adding potion:", error);
+      }
     } catch (error) {
       console.error(`Failed to purchase ${potionName}:`, error);
     }

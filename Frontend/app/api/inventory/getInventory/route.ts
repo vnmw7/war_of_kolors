@@ -13,36 +13,56 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    console.log("User " + user_id);
-    const { data: user, error: ownerError } = await supabase
+    // Find the user's ID in the users table
+    const { data: user, error: userError } = await supabase
       .from("users_tbl")
-      .select("id, user_id, username")
+      .select("id")
       .eq("user_id", user_id)
       .limit(1)
       .single();
 
-    if (ownerError) {
-      return NextResponse.json({ error: ownerError.message }, { status: 500 });
+    if (userError) {
+      return NextResponse.json({ error: userError.message }, { status: 500 });
     }
 
-    // fetch current inventory
-    console.log("Searching for characters with owner_id: " + user.id);
-    const { data: potions, error } = await supabase
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    // Fetch the potions for this user
+    console.log("Searching for potions with owner_id: " + user.id);
+    const { data: potions, error: potionsError } = await supabase
       .from("potions_tbl")
       .select("*")
-      .eq("owner_id", user.id);
+      .eq("owner_id", user.id)
+      .limit(1)
+      .single();
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+    // If no potions found or there's an error (except for "no rows")
+    if (potionsError) {
+      if (potionsError.code === "PGRST116") {
+        // "no rows returned" error
+        // Return empty potions object with zero counts
+        return NextResponse.json({
+          potions: {
+            hp: 0,
+            leprechaun: 0,
+            devil: 0,
+          },
+        });
+      }
+      return NextResponse.json(
+        { error: potionsError.message },
+        { status: 500 },
+      );
     }
 
-    console.log("Potions: ", potions);
-
-    return NextResponse.json({ user, potions });
+    // Return the potions data
+    return NextResponse.json({ potions });
   } catch (error) {
     console.error(error);
     return NextResponse.json(
-      { error: "Failed to get inventory" },
+      { error: "Failed to fetch inventory" },
       { status: 500 },
     );
   }
