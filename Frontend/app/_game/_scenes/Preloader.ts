@@ -62,7 +62,7 @@ export class Preloader extends Scene {
     this.load.image("leprechaunsPotion", "leprechaunsPotion.png");
     this.load.image("healthPotion", "healthPotion.png");
 
-    for (let i = 1; i <= 104; i++) {
+    for (let i = 1; i <= 107; i++) {
       this.load.image(`characterSprite${i}`, `char_${i}.png`);
     }
 
