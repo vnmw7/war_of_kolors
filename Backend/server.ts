@@ -291,6 +291,7 @@ io.on("connection", (socket) => {
 
       // Emit the updated players list to all clients in the room
       io.to(roomID).emit("playerJoinedWaitingRoom", room.players);
+      socket.to(roomID).emit("playerVotedSkip", room?.votesToStart);
       console.log(
         `Emitting updated players list for room ${roomID}:`,
         room.players,
@@ -311,9 +312,15 @@ io.on("connection", (socket) => {
     const room = playersWaitingRooms.find((room) => room.roomID === roomID);
     if (room) {
       room.votesToStart++;
+
+      // Check if callback is a function before calling it
+      if (typeof callback === "function") {
+        socket.to(roomID).emit("playerVotedSkip", room?.votesToStart);
+        callback(room ? room.votesToStart : 0);
+      }
     }
-    callback(room ? room.votesToStart : 0);
-    if (room && room.votesToStart === room.players.length - 1) {
+
+    if (room && room.votesToStart === room.players.length) {
       io.to(roomID).emit("proceedToGame");
     }
   });
