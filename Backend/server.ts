@@ -90,7 +90,7 @@ const server = http.createServer(app);
 // Create Socket.IO server using the HTTP server
 const io = new Server(server, {
   cors: {
-    origin: "*", // frontend url ex localhost: 3000
+    origin: process.env.FRONTEND_HOST || "*", // frontend url ex localhost: 3000
     methods: ["GET", "POST"],
   },
 });
