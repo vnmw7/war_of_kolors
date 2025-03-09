@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { MetaMaskSVG } from "@/components/ui/metaMaskSVG";
 import { metaMaskSignInAction } from "@/lib/auth/metaMaskSignInAction";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 interface MetaMaskSignInProps {
   setWalletConnected: (connected: boolean) => void;
@@ -14,6 +15,7 @@ const MetaMaskSignIn: React.FC<MetaMaskSignInProps> = ({
 }) => {
   const [isConnecting, setIsConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
   // useEffect(() => {
   //   const checkIfWalletIsConnected = async () => {
@@ -63,6 +65,7 @@ const MetaMaskSignIn: React.FC<MetaMaskSignInProps> = ({
       setWalletConnected(true);
       // Now call the server action with the wallet address
       await metaMaskSignInAction(address);
+      router.push("/welcome");
     } catch (error) {
       console.error("Error connecting to wallet:", error);
     } finally {
