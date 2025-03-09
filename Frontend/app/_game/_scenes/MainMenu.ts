@@ -12,6 +12,12 @@ export class MainMenu extends Scene {
   characterFrame!: GameObjects.Image;
   characterImage!: GameObjects.Image;
   banner!: GameObjects.Image;
+  user!: { id: string; user_id: string; username: string };
+  potions!: {
+    id: string;
+    devil: number;
+    leprechaun: number;
+  };
   characters: {
     id: number;
     name: string;
@@ -35,6 +41,7 @@ export class MainMenu extends Scene {
   ui_frame!: string;
   characterNameText!: GameObjects.Text;
   luckText!: GameObjects.Text;
+  joinRoomBttn!: GameObjects.Text;
 
   constructor() {
     super("MainMenu");
@@ -123,6 +130,32 @@ export class MainMenu extends Scene {
         console.log("Characters fetched successfully: ", data);
         this.characters = data.characters;
         console.log("These are the characters: ", this.characters);
+
+        // Emit event to notify that characters are loaded
+        this.events.emit("characters-loaded");
+      }
+    } catch (error) {
+      console.error("Error fetching characters:", error);
+    }
+
+    try {
+      const response = await fetch("/api/inventory/getInventory", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Failed to get inventory:", errorData);
+      } else {
+        const data = await response.json();
+        console.log("inventory fetched successfully: ", data);
+        this.user = data.user;
+        this.potions = data.potions;
+        console.log("User: ", this.user);
+        console.log("Potions: ", this.potions);
 
         // Emit event to notify that characters are loaded
         this.events.emit("characters-loaded");
@@ -336,6 +369,9 @@ export class MainMenu extends Scene {
               this.updateCharacterBasedUI();
             }
           });
+
+        this.createRoomBttn.setInteractive();
+        this.joinRoomBttn.setInteractive();
       }
     });
 
@@ -349,32 +385,31 @@ export class MainMenu extends Scene {
         padding: { x: 20, y: 10 },
       })
       .setOrigin(0.5)
-      .setInteractive();
+      .on("pointerover", () => {
+        this.createRoomBttn.setStyle({ color: "#ffff00" }); // Change color on hover
+      })
+      .on("pointerout", () => {
+        this.createRoomBttn.setStyle({ color: "#ffffff" }); // Reset color on mouse out
+      })
+      .on("pointerdown", () => {
+        let roomToJoin = "";
 
-    this.createRoomBttn.on("pointerover", () => {
-      this.createRoomBttn.setStyle({ color: "#ffff00" }); // Change color on hover
-    });
+        this.socket.emit("createPlayerRoom", (roomID: string) => {
+          roomToJoin = roomID;
 
-    this.createRoomBttn.on("pointerout", () => {
-      this.createRoomBttn.setStyle({ color: "#ffffff" }); // Reset color on mouse out
-    });
+          console.log("Room created: " + roomToJoin);
 
-    this.createRoomBttn.on("pointerdown", () => {
-      let roomToJoin = "";
-
-      this.socket.emit("createGuestRoom", (roomID: string) => {
-        roomToJoin = roomID;
-
-        console.log("Room created: " + roomToJoin);
-
-        this.scene.start("WaitingRoom", {
-          roomID: roomToJoin,
+          this.scene.start("WaitingRoom", {
+            roomID: roomToJoin,
+            user: this.user,
+            character: this.selectedCharacter,
+            potions: this.potions,
+          });
         });
       });
-    });
 
     // --- Join Lobby Button ---
-    const joinRoomBttn = this.add
+    this.joinRoomBttn = this.add
       .text(cameraX, cameraY + 220, "Join Room", {
         fontFamily: "Arial",
         fontSize: 32,
@@ -383,27 +418,35 @@ export class MainMenu extends Scene {
         padding: { x: 20, y: 10 },
       })
       .setOrigin(0.5)
-      .setInteractive();
+      .on("pointerover", () => {
+        this.joinRoomBttn.setStyle({ color: "#ffff00" });
+      })
+      .on("pointerout", () => {
+        this.joinRoomBttn.setStyle({ color: "#ffffff" });
+      })
+      .on("pointerdown", () => {
+        console.log("Joining room...");
 
-    joinRoomBttn.on("pointerover", () => {
-      joinRoomBttn.setStyle({ color: "#ffff00" });
-    });
+        this.socket.emit(
+          "getAvailableRoom",
+          this.selectedCharacter?.color.toLowerCase(),
+          (roomID: string, colorRepresentativesIndex: string) => {
+            let roomtoJoin = "";
+            roomtoJoin = roomID;
+            if (this.selectedCharacter) {
+              this.selectedCharacter.color = colorRepresentativesIndex;
+            }
+            console.log("Joining room: " + roomtoJoin);
 
-    joinRoomBttn.on("pointerout", () => {
-      joinRoomBttn.setStyle({ color: "#ffffff" });
-    });
-
-    joinRoomBttn.on("pointerdown", () => {
-      console.log("Joining room...");
-
-      this.socket.emit("getAvailableRoom", (roomID: string) => {
-        let roomtoJoin = "";
-        roomtoJoin = roomID;
-        console.log("Joining room: " + roomtoJoin);
-
-        this.scene.start("WaitingRoom", { roomID: roomID });
+            this.scene.start("WaitingRoom", {
+              roomID: roomID,
+              user: this.user,
+              character: this.selectedCharacter,
+              potions: this.potions,
+            });
+          },
+        );
       });
-    });
 
     EventBus.emit("current-scene-ready", this);
 

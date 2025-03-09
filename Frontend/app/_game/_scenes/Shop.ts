@@ -167,7 +167,7 @@ export class Shop extends Scene {
     const centerX = this.cameras.main.centerX;
     const centerY = this.cameras.main.centerY;
 
-    const backButton = this.add
+    this.add
       .text(centerX, centerY + 300, "Back", {
         fontFamily: "Arial",
         fontSize: 32,
@@ -180,10 +180,6 @@ export class Shop extends Scene {
       .on("pointerdown", () => {
         this.scene.start("MainMenu");
       });
-
-    backButton.on("pointerdown", () => {
-      this.scene.start("Game");
-    });
 
     this.buyCharacter = this.registry.get("buyCharacter");
     // Title

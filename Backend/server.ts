@@ -12,12 +12,72 @@ interface GuestRoom {
 
 interface PlayerRoom {
   roomID: string;
-  sockets: string[];
-  betAmount: number;
+  players: {
+    socketID: string;
+    user: { id: string; user_id: string; username: string };
+    potions: {
+      id: string;
+      devil: number;
+      leprechaun: number;
+    };
+    character: {
+      id: number;
+      name: string;
+      sprite: string;
+      created_at: string;
+      tier: string;
+      color: string;
+      luck?: number;
+    };
+  }[];
+  entryBet: number;
+  totalBet: number;
+  colorRepresentatives: {
+    red: string;
+    blue: string;
+    yellow: string;
+    green: string;
+    pink: string;
+    white: string;
+  };
+  votesToStart: number;
+}
+
+interface BattleRoom {
+  roomID: string;
+  players: {
+    socketID: string;
+    user: { id: string; user_id: string; username: string };
+    potions: {
+      id: string;
+      devil: number;
+      leprechaun: number;
+    };
+    character: {
+      id: number;
+      name: string;
+      sprite: string;
+      created_at: string;
+      tier: string;
+      color: string;
+      luck?: number;
+    };
+  }[];
+  entryBet: number;
+  totalBet: number;
+  colorRepresentatives: {
+    red: string;
+    blue: string;
+    yellow: string;
+    green: string;
+    pink: string;
+    white: string;
+  };
 }
 
 const guestWaitingRooms: GuestRoom[] = [];
-const PlayersWaitingRooms: PlayerRoom[] = [];
+const playersWaitingRooms: PlayerRoom[] = [];
+const battleRooms: BattleRoom[] = [];
 
 // Create express app
 const app = express();
@@ -46,7 +106,7 @@ io.on("connection", (socket) => {
     const roomList = [];
 
     // Create a copy of the array to safely remove items during iteration
-    const roomsToCheck = [...guestWaitingRooms, ...PlayersWaitingRooms];
+    const roomsToCheck = [...playersWaitingRooms, ...battleRooms];
 
     for (let i = roomsToCheck.length - 1; i >= 0; i--) {
       const room = roomsToCheck[i];
@@ -55,11 +115,19 @@ io.on("connection", (socket) => {
 
       if (socketCount === 0) {
         // Find the index in the original array and remove it
-        const indexInOriginal = guestWaitingRooms.findIndex(
+        const indexInOriginal1 = playersWaitingRooms.findIndex(
           (r) => r.roomID === room.roomID,
         );
-        if (indexInOriginal !== -1) {
-          guestWaitingRooms.splice(indexInOriginal, 1);
+        if (indexInOriginal1 !== -1) {
+          playersWaitingRooms.splice(indexInOriginal1, 1);
+          console.log(`Room ${room.roomID} removed - no active connections`);
+        }
+
+        const indexInOriginal2 = battleRooms.findIndex(
+          (r) => r.roomID === room.roomID,
+        );
+        if (indexInOriginal2 !== -1) {
+          battleRooms.splice(indexInOriginal2, 1);
           console.log(`Room ${room.roomID} removed - no active connections`);
         }
       } else {
@@ -90,23 +158,34 @@ io.on("connection", (socket) => {
   // Create a new room for guests
   // himo random room id
   // add ang new room sa guest rooms
-  socket.on("createGuestRoom", (callback) => {
-    console.log("All Guest Rooms: ", guestWaitingRooms.length);
+  socket.on("createPlayerRoom", (callback) => {
+    console.log("All Player Rooms: ", playersWaitingRooms.length);
 
     console.log("Available Guest Rooms: ", cleanAndListRooms());
 
     const roomId = uuidv4(); // Generate a unique room ID
-    const newRoom: GuestRoom = {
+    const newRoom: PlayerRoom = {
       roomID: roomId,
-      sockets: [], // empty lang any mag create room
+      players: [],
+      colorRepresentatives: {
+        red: "",
+        blue: "",
+        yellow: "",
+        green: "",
+        pink: "",
+        white: "",
+      },
+      entryBet: 10,
+      totalBet: 0,
+      votesToStart: 0,
     };
-    guestWaitingRooms.push(newRoom);
+    playersWaitingRooms.push(newRoom);
 
-    console.log("Available Guest Rooms: ", guestWaitingRooms.length);
+    console.log("Available Rooms: ", playersWaitingRooms.length);
 
     callback(roomId); // Send the room ID back to the client
     // ngitaun ang gn himo nga room
-    const createdRoom = guestWaitingRooms.find(
+    const createdRoom = playersWaitingRooms.find(
       (room) => room.roomID === roomId,
     );
     if (createdRoom) {
@@ -116,25 +195,50 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("getAvailableRoom", (callback) => {
-    const roomsWithCounts = cleanAndListRooms();
-    const roomID =
-      roomsWithCounts[Math.floor(Math.random() * roomsWithCounts.length)]
-        ?.roomID;
-    callback(roomID);
+  socket.on("getAvailableRoom", (playerColor: string, callback) => {
+    cleanAndListRooms();
+    let roomID;
+    let colorRepresentativesIndex: keyof PlayerRoom["colorRepresentatives"];
+
+    if (playerColor === "rainbow") {
+      const colors = ["red", "blue", "yellow", "green", "pink", "white"];
+      colorRepresentativesIndex = colors[
+        Math.floor(Math.random() * colors.length)
+      ] as keyof PlayerRoom["colorRepresentatives"];
+    } else {
+      colorRepresentativesIndex =
+        playerColor as keyof PlayerRoom["colorRepresentatives"];
+    }
+
+    // Find a room where the color representative is empty
+    for (let i = 0; i < playersWaitingRooms.length; i++) {
+      const randomIndex = Math.floor(
+        Math.random() * playersWaitingRooms.length,
+      );
+      const potentialRoom = playersWaitingRooms[randomIndex];
+
+      if (
+        potentialRoom.colorRepresentatives[colorRepresentativesIndex] === "" &&
+        potentialRoom.players.length < 6
+      ) {
+        cleanAndListRooms();
+        roomID = potentialRoom.roomID;
+        break;
+      }
+    }
+
+    callback(roomID, colorRepresentativesIndex);
   });
 
-  socket.on("joinRoom", (roomID, socketID) => {
-    const room = guestWaitingRooms.find((room) => room.roomID === roomID);
+  socket.on("joinWaitingRoom", (roomID, socketID, user, character, potions) => {
+    const room = playersWaitingRooms.find((room) => room.roomID === roomID);
     if (room) {
-      room.sockets.push(socketID);
+      room.players.push({ socketID, user, character, potions });
       console.log(`Room joined: ${roomID} by ${socketID}`);
 
       socket.join(roomID);
 
-      // ibalik ang connected players
-      const numOfPlayers = io.sockets.adapter.rooms.get(roomID)?.size || 0;
-      io.to(roomID).emit("aPlayerJoined", roomID, socketID, numOfPlayers);
+      io.to(roomID).emit("playerJoinedWaitingRoom", room.players);
     } else {
       console.log("Room not found: ", roomID);
     }
@@ -180,8 +284,15 @@ io.on("connection", (socket) => {
   socket.on("getUpdatedPlayers", (roomID, callback) => {
     const room =
       guestWaitingRooms.find((r) => r.roomID === roomID) ||
-      PlayersWaitingRooms.find((r) => r.roomID === roomID);
-    callback(room?.sockets || []);
+      playersWaitingRooms.find((r) => r.roomID === roomID);
+    if (room && "players" in room) {
+      callback(
+        room.players.map((player: { socketID: string }) => player.socketID) ||
+          [],
+      );
+    } else {
+      callback([]);
+    }
   });
 
   // You can also add auto-cleanup when a player disconnects
@@ -212,13 +323,15 @@ io.on("connection", (socket) => {
     }
 
     // Do the same for player rooms
-    for (let i = 0; i < PlayersWaitingRooms.length; i++) {
-      const room = PlayersWaitingRooms[i];
-      const socketIndex = room.sockets.indexOf(socket.id);
+    for (let i = 0; i < playersWaitingRooms.length; i++) {
+      const room = playersWaitingRooms[i];
+      const socketIndex = room.players.findIndex(
+        (player) => player.socketID === socket.id,
+      );
 
       if (socketIndex !== -1) {
-        // Remove socket from room's sockets array
-        room.sockets.splice(socketIndex, 1);
+        // Remove socket from room's players array
+        room.players.splice(socketIndex, 1);
 
         // Notify remaining players that someone left
         const numOfPlayers =
@@ -236,22 +349,30 @@ io.on("connection", (socket) => {
       }
     }
 
-    // Remove this player from any ready player lists
-    for (const roomID in roomReadyPlayers) {
-      const index = roomReadyPlayers[roomID].indexOf(socket.id);
-      if (index !== -1) {
-        roomReadyPlayers[roomID].splice(index, 1);
+    // Do the same for battleRooms rooms
+    for (let i = 0; i < battleRooms.length; i++) {
+      const room = battleRooms[i];
+      const socketIndex = room.players.findIndex(
+        (player) => player.socketID === socket.id,
+      );
 
-        // Notify room about updated ready players
-        const allPlayers = Array.from(
-          io.sockets.adapter.rooms.get(roomID) || [],
+      if (socketIndex !== -1) {
+        // Remove socket from room's players array
+        room.players.splice(socketIndex, 1);
+
+        // Notify remaining players that someone left
+        const numOfPlayers =
+          io.sockets.adapter.rooms.get(room.roomID)?.size || 0;
+        io.to(room.roomID).emit(
+          "playerLeft",
+          room.roomID,
+          socket.id,
+          numOfPlayers,
         );
-        io.to(roomID).emit("updatePlayersReady", {
-          roomID,
-          readyPlayerID: null,
-          allReadyPlayers: roomReadyPlayers[roomID],
-          totalPlayers: allPlayers.length,
-        });
+
+        console.log(
+          `Socket ${socket.id} removed from battle room ${room.roomID}, ${numOfPlayers} players remaining`,
+        );
       }
     }
 

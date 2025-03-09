@@ -1,13 +1,11 @@
-import { auth } from "../../../lib/auth";
-import supabase from "../../../lib/db/db";
+import { auth } from "../../../../lib/auth";
+import supabase from "../../../../lib/db/db";
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
   try {
-    // Get character data from request
-    const { tier, color, luck, sprite, name } = await request.json();
-    console.log("Recieved payload: " + tier, color, luck, sprite, name);
-
+    const body = await request.json();
+    // const { potionnName, quantity } = body;
     // Get user session server-side
     const session = await auth();
     const user_id = session?.user?.user_id;
@@ -17,7 +15,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    console.log("Fetching primary key of: " + user_id);
+    console.log("User " + user_id);
     const { data: user, error: ownerError } = await supabase
       .from("users_tbl")
       .select("id")
@@ -29,27 +27,28 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: ownerError.message }, { status: 500 });
     }
 
-    // Insert character into database
-    console.log("The owner pk is: " + user.id);
-    console.log("Insert character into database");
-    const { error } = await supabase.from("characters_tbl").insert({
-      owner_id: user.id,
-      tier,
-      color: color.toLowerCase(),
-      luck,
-      sprite,
-      name,
-    });
+    // fetch current inventory
+    console.log("Searching for potions with owner_id: " + user.id);
+    const { data: potions, error } = await supabase
+      .from("potions_tbl")
+      .select("*")
+      .eq("owner_id", user.id)
+      .limit(1)
+      .single();
+
+    if (!potions) {
+      return NextResponse.json({ error: "No potions found" }, { status: 404 });
+    }
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true });
+    console.log("Potions: ", potions);
   } catch (error) {
     console.error(error);
     return NextResponse.json(
-      { error: "Failed to create character" },
+      { error: "Failed to get inventory" },
       { status: 500 },
     );
   }
