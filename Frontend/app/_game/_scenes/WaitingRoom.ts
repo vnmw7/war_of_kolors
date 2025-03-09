@@ -86,6 +86,7 @@ export class WaitingRoom extends Scene {
     color: string;
     luck?: number;
   };
+  votesText!: GameObjects.Text;
 
   constructor() {
     super("WaitingRoom");
@@ -146,6 +147,7 @@ export class WaitingRoom extends Scene {
       // Enable skip button if enough players
       if (players.length > 1 && this.uiReady && this.skipButton) {
         this.skipButton.setInteractive();
+        this.votesText.setAlpha(1);
       }
 
       // Store players data or update UI if ready
@@ -568,8 +570,8 @@ export class WaitingRoom extends Scene {
       })
       .setOrigin(0.5);
     const votesToSkip = 0;
-    const neededVotes = this.connectedPlayers - 1 || 2;
-    this.add
+    const neededVotes = this.connectedPlayers || 2;
+    this.votesText = this.add
       .text(
         canvasWidth / 2,
         canvasHeight - 120,
