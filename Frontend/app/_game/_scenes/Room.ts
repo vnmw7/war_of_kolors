@@ -63,6 +63,8 @@ export class Room extends Phaser.Scene {
   // init(data) {}
 
   create() {
+    this.sound.add("ambiance", { loop: true }).stop();
+    this.sound.add("action", { loop: true }).play();
     //Responsive
     this.cameraX = this.cameras.main.width / 2;
     this.cameraY = this.cameras.main.height / 2;
