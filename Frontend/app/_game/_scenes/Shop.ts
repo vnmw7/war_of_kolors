@@ -349,7 +349,6 @@ export class Shop extends Scene {
       )
       .setOrigin(0.5)
       .setDisplaySize(100, 100);
-      
 
     const luckText = this.add
       .text(
@@ -362,10 +361,10 @@ export class Shop extends Scene {
           fontFamily: "Arial",
           fontSize: 20,
           color: "#000000",
-        }
+        },
       )
       .setOrigin(0.5);
-    
+
     const closeButton = this.add
       .text(
         this.cameras.main.centerX,
