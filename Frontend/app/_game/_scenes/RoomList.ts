@@ -13,7 +13,7 @@ export class RoomList extends Scene {
   constructor() {
     super("RoomList");
 
-    this.socket = io(process.env.SOCKET_HOST || "http://localhost:3000");
+    this.socket = io("https://sipd-wok.onrender.com");
 
     this.socket.on("connect", () => {
       console.log("Connected with ID:", this.socket.id);
