@@ -17,6 +17,7 @@ export class MainMenu extends Scene {
     id: string;
     devil: number;
     leprechaun: number;
+    hp: number;
   };
   characters: {
     id: number;
@@ -42,6 +43,9 @@ export class MainMenu extends Scene {
   characterNameText!: GameObjects.Text;
   luckText!: GameObjects.Text;
   joinRoomBttn!: GameObjects.Text;
+  devilPottionText!: GameObjects.Text;
+  hpPottionText!: GameObjects.Text;
+  lePottionText!: GameObjects.Text;
 
   constructor() {
     super("MainMenu");
@@ -115,6 +119,30 @@ export class MainMenu extends Scene {
 
   async init() {
     try {
+      const response = await fetch("/api/getUser", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Failed to fetch user:", errorData);
+      } else {
+        const data = await response.json();
+        console.log("User fetched successfully: ", data);
+        this.user = data.user;
+        console.log("User: ", this.user);
+
+        // Emit event to notify that characters are loaded
+        this.events.emit("user-loaded");
+      }
+    } catch (error) {
+      console.error("Error fetching user:", error);
+    }
+
+    try {
       const response = await fetch("/api/getCharacters", {
         method: "GET",
         headers: {
@@ -139,7 +167,7 @@ export class MainMenu extends Scene {
     }
 
     try {
-      const response = await fetch("/api/inventory/getInventory", {
+      const response = await fetch("/api/inventory/getPotionInventory", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -152,13 +180,11 @@ export class MainMenu extends Scene {
       } else {
         const data = await response.json();
         console.log("inventory fetched successfully: ", data);
-        this.user = data.user;
         this.potions = data.potions;
-        console.log("User: ", this.user);
         console.log("Potions: ", this.potions);
 
         // Emit event to notify that characters are loaded
-        this.events.emit("characters-loaded");
+        this.events.emit("potions-loaded");
       }
     } catch (error) {
       console.error("Error fetching characters:", error);
@@ -175,6 +201,8 @@ export class MainMenu extends Scene {
     const visualViewportWidth = window.visualViewport?.width || 1024;
     const visualViewportHeight = window.visualViewport?.height || 768;
 
+    this.background = this.add.image(cameraX, cameraY, "background");
+
     const canvasFrameConfig = {
       width: visualViewportWidth + 300,
     };
@@ -190,18 +218,16 @@ export class MainMenu extends Scene {
 
     if (visualViewportWidth !== undefined && visualViewportWidth < 1024) {
       canvasFrameConfig.width = visualViewportWidth + 80;
-      bannerConfig.posX = (1024 - visualViewportWidth) / 2 + 150;
       this.canvasFrame.setDisplaySize(
         canvasFrameConfig.width,
         visualViewportHeight + 200,
       );
     }
-    this.background = this.add.image(cameraX, cameraY, "background");
 
     this.title = this.add
-      .text(cameraX, 100, "War of Colors", {
+      .text(cameraX, 130, "War of Colors", {
         fontFamily: "Arial Black",
-        fontSize: 40,
+        fontSize: 24,
         color: "#ffffff",
         stroke: "#000000",
         strokeThickness: 8,
@@ -298,16 +324,17 @@ export class MainMenu extends Scene {
         this.selectedIndex = this.characters.length > 0 ? 0 : 0;
         this.selectedCharacter = this.characters[this.selectedIndex];
 
-        this.canvasFrame = this.add
-          .image(cameraX, cameraY - 10, "toy-frame-silver")
-          .setDisplaySize(canvasFrameConfig.width, visualViewportHeight + 200);
+        this.canvasFrame.setDisplaySize(
+          canvasFrameConfig.width,
+          visualViewportHeight + 200,
+        );
         this.characterFrame = this.add
           .image(cameraX, cameraY - 100, "")
           .setScale(0.21, 0.25)
           .setDepth(200);
         this.banner = this.add
           .image(bannerConfig.posX, 0, "banner-silver")
-          .setScale(0.15)
+          .setScale(0.1)
           .setOrigin(0)
           .setDepth(50);
         this.characterImage = this.add
@@ -373,6 +400,55 @@ export class MainMenu extends Scene {
         this.createRoomBttn.setInteractive();
         this.joinRoomBttn.setInteractive();
       }
+    });
+
+    this.add
+      .image(visualViewportWidth - 70, 50, "devilsPotion")
+      .setDisplaySize(60, 60)
+      .setAbove(this.canvasFrame);
+    this.devilPottionText = this.add
+      .text(visualViewportWidth - 70, 60, "0", {
+        fontFamily: "Arial",
+        fontSize: 18,
+        color: "#000000",
+        strokeThickness: 4,
+        stroke: "#ffffff",
+        align: "center",
+      })
+      .setAbove(this.canvasFrame);
+    this.add
+      .image(visualViewportWidth - 125, 50, "healthPotion")
+      .setDisplaySize(60, 60)
+      .setAbove(this.canvasFrame);
+    this.hpPottionText = this.add
+      .text(visualViewportWidth - 125, 60, "0", {
+        fontFamily: "Arial",
+        fontSize: 18,
+        color: "#000000",
+        strokeThickness: 4,
+        stroke: "#ffffff",
+        align: "center",
+      })
+      .setAbove(this.canvasFrame);
+    this.add
+      .image(visualViewportWidth - 180, 50, "leprechaunsPotion")
+      .setDisplaySize(60, 60)
+      .setAbove(this.canvasFrame);
+    this.lePottionText = this.add
+      .text(visualViewportWidth - 180, 60, "0", {
+        fontFamily: "Arial",
+        fontSize: 18,
+        color: "#000000",
+        strokeThickness: 4,
+        stroke: "#ffffff",
+        align: "center",
+      })
+      .setAbove(this.canvasFrame);
+
+    this.events.once("potions-loaded", () => {
+      this.devilPottionText.setText(this.potions.devil.toString());
+      this.hpPottionText.setText(this.potions.hp.toString());
+      this.lePottionText.setText(this.potions.leprechaun.toString());
     });
 
     // --- Create Lobby Button ---

@@ -64,8 +64,9 @@ const MetaMaskSignIn: React.FC<MetaMaskSignInProps> = ({
       console.log("Connected address:", address);
       setWalletConnected(true);
       // Now call the server action with the wallet address
-      await metaMaskSignInAction(address);
-      router.push("/welcome");
+      await metaMaskSignInAction(address).then(() => {
+        router.push("/welcome");
+      });
     } catch (error) {
       console.error("Error connecting to wallet:", error);
     } finally {

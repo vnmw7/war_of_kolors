@@ -158,11 +158,6 @@ export class Shop extends Scene {
     this.load.image("GoldDoor", "assets/golddoor.png");
     this.load.image("RainbowDoor", "assets/rainbowdoor.png");
 
-    // Potions
-    this.load.image("devilsPotion", "assets/devilsPotion.png");
-    this.load.image("leprechaunsPotion", "assets/leprechaunsPotion.png");
-    this.load.image("healthPotion", "assets/healthPotion.png");
-
     // Characters
     // 💬[vincent]: gn move ko sa preloader.ts
     //   for (let i = 1; i <= 104; i++) {
@@ -173,6 +168,8 @@ export class Shop extends Scene {
   create(): void {
     const centerX = this.cameras.main.centerX;
     const centerY = this.cameras.main.centerY;
+
+    this.add.image(centerX, centerY, "background");
 
     this.add
       .text(centerX, centerY + 300, "Back", {
@@ -261,7 +258,7 @@ export class Shop extends Scene {
       .text(x, y - 80, name, {
         fontFamily: "Arial",
         fontSize: 24,
-        color: "#ffffff",
+        color: "#000000",
       })
       .setOrigin(0.5);
 
@@ -269,7 +266,7 @@ export class Shop extends Scene {
       .text(x, y + 80, `Price: ${price}`, {
         fontFamily: "Arial",
         fontSize: 20,
-        color: "#ffffff",
+        color: "#000000",
       })
       .setOrigin(0.5);
 
@@ -286,7 +283,7 @@ export class Shop extends Scene {
     potionSprite: string,
   ): Promise<void> {
     try {
-      // await this.buyCharacter(price.toString()); // Reusing the buyCharacter method for purchasing potions
+      await this.buyCharacter(price.toString()); // Reusing the buyCharacter method for purchasing potions
       buyPotion();
       this.showPotionModal(potionName, potionSprite);
       try {
@@ -371,7 +368,7 @@ export class Shop extends Scene {
         {
           fontFamily: "Arial",
           fontSize: 24,
-          color: "#ffffff",
+          color: "#000000",
           backgroundColor: "#4e342e",
           padding: { x: 20, y: 10 },
         },
@@ -442,14 +439,14 @@ export class Shop extends Scene {
       .text(x, y - 120, tier, {
         fontFamily: "Arial",
         fontSize: 24,
-        color: "#ffffff",
+        color: "#000000",
       })
       .setOrigin(0.5);
     this.add
       .text(x, y + 130, `Price: ${price}`, {
         fontFamily: "Arial",
         fontSize: 20,
-        color: "#ffffff",
+        color: "#000000",
       })
       .setOrigin(0.5);
 
@@ -607,7 +604,7 @@ export class Shop extends Scene {
         {
           fontFamily: "Arial",
           fontSize: 24,
-          color: "#ffffff",
+          color: "#000000",
           backgroundColor: "#4e342e",
           padding: { x: 20, y: 10 },
         },
