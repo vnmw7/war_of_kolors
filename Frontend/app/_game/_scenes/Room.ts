@@ -1,3 +1,28 @@
+interface RoomData {
+  roomID: string;
+  user: { id: string; user_id: string; username: string };
+  character: {
+    id: number;
+    name: string;
+    sprite: string;
+    created_at: string;
+    tier: string;
+    color: string;
+    luck?: number;
+  };
+  potions: { id: string; devil: number; leprechaun: number; hp: number };
+}
+
+class Player {
+  user_id: string;
+  username: string;
+
+  constructor(user_id: string, username: string) {
+    this.user_id = user_id;
+    this.username = username;
+  }
+}
+
 export class Room extends Phaser.Scene {
   private cameraX: number = 0;
   private cameraY: number = 0;
@@ -69,7 +94,7 @@ export class Room extends Phaser.Scene {
     this.load.image("loadDice", "../img/load.png");
   }
 
-  // init(data) {}
+  async init(data: RoomData) {}
 
   create() {
     this.sound.add("ambiance", { loop: true }).stop();
